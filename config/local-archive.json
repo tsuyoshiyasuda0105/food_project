@@ -1,0 +1,60 @@
+{
+  "enabled": true,
+  "root": "data/local-archive",
+  "manifestPath": "data/local-archive/manifest.json",
+  "retentionYears": 10,
+  "supabaseWindowYears": 1,
+  "format": "gzip-json",
+  "excludeJobIds": ["database-sync", "fish-daily"],
+  "includeJobIds": [
+    "produce-daily",
+    "livestock-meat",
+    "egg-daily",
+    "rice-monthly",
+    "weather-long-range",
+    "inbound-lodging",
+    "household-survey",
+    "production-statistics",
+    "demand-forecast-local",
+    "jnto-visitors",
+    "inbound-consumption"
+  ],
+  "extraEndpoints": [
+    {
+      "id": "household-survey",
+      "label": "家計調査",
+      "source": "e-Stat 家計調査",
+      "target": "野菜・果物・肉・魚・米パンの家計支出候補",
+      "method": "GET",
+      "endpoint": "/api/estat/household",
+      "timeoutSeconds": 120
+    },
+    {
+      "id": "production-statistics",
+      "label": "生産高・作況",
+      "source": "e-Stat 作物統計・畜産物流通",
+      "target": "野菜・果物・米・畜産の生産高候補",
+      "method": "GET",
+      "endpoint": "/api/estat/production",
+      "timeoutSeconds": 120
+    },
+    {
+      "id": "demand-forecast-local",
+      "label": "需要予測",
+      "source": "アプリ内部AI予測",
+      "target": "野菜・果物・肉・コメ・パンの需要予測結果",
+      "method": "GET",
+      "endpoint": "/api/demand/forecast?region={region}",
+      "timeoutSeconds": 180
+    }
+  ],
+  "excludedData": [
+    "JAFIC魚データ（日次スクレイピング対象外）",
+    "気象庁の時間別観測履歴（取得・保存しない）"
+  ],
+  "weatherDataPolicy": "気象庁は7日予報と日次の気温・降水傾向だけを保存し、時間別観測履歴はローカル10年保存にもSupabaseにも入れない。",
+  "schedulerStatePath": "data/scheduler_state.json",
+  "localStorageRole": "10年分の元APIレスポンスとAI分析入力をgzip JSONでローカル保存する",
+  "supabaseRole": "公開ダッシュボード用の直近1年データ、AIスコア、アラート、集計値だけを保持する",
+  "analysisRole": "Pythonがローカル履歴を読み、需要予測をローカルで計算し、結果だけをSupabaseへ公開する"
+}

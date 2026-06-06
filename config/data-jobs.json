@@ -1,0 +1,320 @@
+{
+  "timezone": "Asia/Tokyo",
+  "defaultBaseUrl": "http://127.0.0.1:3001",
+  "jobs": [
+    {
+      "id": "produce-daily",
+      "label": "青果",
+      "target": "野菜・くだもの卸売価格",
+      "source": "農林水産省 / e-Stat",
+      "cadence": "毎日チェック",
+      "runTimes": [
+        "06:40",
+        "12:10",
+        "17:40"
+      ],
+      "publishWindow": "市場データ更新後に朝取得、昼と夕方に差分確認",
+      "action": "中値、数量、産地、規格を保存し、ヒートマップを更新",
+      "status": "active",
+      "method": "GET",
+      "endpoint": "/api/estat/produce",
+      "ownerScreen": "食品",
+      "priority": "high",
+      "timeoutSeconds": 90,
+      "maxRetries": 4,
+      "retryMinutes": [
+        10,
+        30,
+        90,
+        180
+      ],
+      "catchUpWithinHours": 36,
+      "failureAction": "取得失敗時は10分後から再取得。朝の取得が失敗した場合でも昼・夕方の差分確認で取り戻す。",
+      "recoveryAction": "PC/サーバー起動時に36時間以内の未実行分を順番に再取得する。",
+      "note": "公的サイト/APIから取得できる範囲で進めます。"
+    },
+    {
+      "id": "livestock-meat",
+      "label": "食肉",
+      "target": "豚・牛の日別市況",
+      "source": "農林水産省 生鮮取引電子化推進協議会",
+      "cadence": "開市日",
+      "runTimes": [
+        "11:20",
+        "16:45"
+      ],
+      "publishWindow": "原則16:35公表。未公表日は翌開市日11:05後に再取得",
+      "action": "市場別CSVを取得し、平均価格、成立頭数、重量を保存",
+      "status": "active",
+      "method": "GET",
+      "endpoint": "/api/maff/livestock",
+      "ownerScreen": "食品",
+      "priority": "high",
+      "timeoutSeconds": 120,
+      "maxRetries": 5,
+      "retryMinutes": [
+        15,
+        45,
+        120,
+        240,
+        720
+      ],
+      "catchUpWithinHours": 48,
+      "failureAction": "未公表・通信失敗の場合は段階的に再取得。翌営業日の午前確認も残す。",
+      "recoveryAction": "起動時に48時間以内の未取得日を再チェックし、最新日付が取れたら上書き保存する。"
+    },
+    {
+      "id": "egg-daily",
+      "label": "鶏卵",
+      "target": "鶏卵市況・入荷量",
+      "source": "農林水産省 生鮮取引電子化推進協議会",
+      "cadence": "取引日",
+      "runTimes": [
+        "11:15",
+        "14:15"
+      ],
+      "publishWindow": "原則11:05公表。未確認時は午後に再取得",
+      "action": "全農系・商社系の入荷量と規格別高値/中値/安値を保存",
+      "status": "active",
+      "method": "GET",
+      "endpoint": "/api/maff/livestock?kind=egg",
+      "ownerScreen": "食品",
+      "priority": "high",
+      "timeoutSeconds": 90,
+      "maxRetries": 4,
+      "retryMinutes": [
+        10,
+        30,
+        90,
+        240
+      ],
+      "catchUpWithinHours": 36,
+      "failureAction": "午前取得に失敗したら午後再取得。値が欠ける場合は次回成功分で補完する。",
+      "recoveryAction": "起動時に36時間以内の未取得分を再実行し、取得日候補から最新日を確認する。"
+    },
+    {
+      "id": "rice-monthly",
+      "label": "米",
+      "target": "相対取引価格・数量、民間在庫、小売価格",
+      "source": "農林水産省 / e-Stat 小売物価統計",
+      "cadence": "毎日チェック",
+      "runTimes": [
+        "13:10"
+      ],
+      "publishWindow": "月次公表資料の新着CSVを毎日確認",
+      "action": "銘柄別60kg価格、取引数量、在庫、小売価格を保存",
+      "status": "active",
+      "method": "GET",
+      "endpoint": "/api/maff/rice",
+      "ownerScreen": "食品",
+      "priority": "medium",
+      "timeoutSeconds": 90,
+      "maxRetries": 3,
+      "retryMinutes": [
+        30,
+        120,
+        360
+      ],
+      "catchUpWithinHours": 72,
+      "failureAction": "月次資料のため即時性は中程度。取得失敗時は当日中に再確認する。",
+      "recoveryAction": "起動時に72時間以内の未確認分を再チェックし、新着CSVがあれば保存する。"
+    },
+    {
+      "id": "wheat-supply-price",
+      "label": "小麦",
+      "target": "国内生産量・輸入割合・輸入小麦政府売渡価格",
+      "source": "農林水産省 麦の需給と価格 / 食料需給表",
+      "cadence": "毎月確認（3月・9月重点）",
+      "runTimes": [
+        "05:45"
+      ],
+      "publishWindow": "政府売渡価格の公表日・適用期・更新日を保存。4月期/10月期の改定前後は毎日確認",
+      "action": "国内生産量、国内消費仕向量、輸入量または外国産流通量、国内/輸入比率、政府売渡価格、対前期比、公表日を保存し、小麦カテゴリへ反映",
+      "status": "planned",
+      "method": "GET",
+      "endpoint": "/api/maff/wheat",
+      "ownerScreen": "食品",
+      "priority": "high",
+      "timeoutSeconds": 90,
+      "maxRetries": 4,
+      "retryMinutes": [
+        30,
+        120,
+        360,
+        720
+      ],
+      "catchUpWithinHours": 168,
+      "failureAction": "公表資料が未更新または取得失敗の場合は翌朝と翌営業日に再確認し、前回値には更新日を付けて表示",
+      "recoveryAction": "PC/サーバー復帰時に7日以内の未確認日を再チェックし、最新の公表日だけを上書き保存",
+      "note": "最新確認: 令和8年3月11日公表、令和8年4月期 62,520円/トン、対前期 +2.5%"
+    },
+    {
+      "id": "weather-long-range",
+      "label": "天候",
+      "target": "天候・気温・降水量・長期予報シグナル",
+      "source": "気象庁",
+      "cadence": "毎日チェック",
+      "runTimes": [
+        "05:30",
+        "15:10"
+      ],
+      "publishWindow": "朝は短期気象、午後は長期予報・高温低温傾向を更新",
+      "action": "地域別に高温/低温/降水傾向を保存し、需要予測へ反映",
+      "status": "active",
+      "method": "GET",
+      "endpoint": "/api/jma/weather?region={region}&days=7",
+      "ownerScreen": "天候",
+      "priority": "high",
+      "timeoutSeconds": 60,
+      "maxRetries": 5,
+      "retryMinutes": [
+        5,
+        15,
+        45,
+        120,
+        240
+      ],
+      "catchUpWithinHours": 24,
+      "failureAction": "需要予測に影響するため短い間隔で再取得。直近取得値はDB側で保持する。",
+      "recoveryAction": "起動時に24時間以内の未取得分を補完し、最新予報を優先して保存する。"
+    },
+    {
+      "id": "inbound-lodging",
+      "label": "宿泊",
+      "target": "宿泊者数、外国人宿泊者数、客室稼働率、国籍別宿泊者数",
+      "source": "観光庁 / e-Stat",
+      "cadence": "毎日チェック",
+      "runTimes": [
+        "04:40"
+      ],
+      "publishWindow": "月次統計の新着を早朝に確認",
+      "action": "都道府県別データを保存し、民泊・宿泊需要画面へ反映",
+      "status": "active",
+      "method": "GET",
+      "endpoint": "/api/estat/lodging?prefecture={prefecture}",
+      "ownerScreen": "民泊",
+      "priority": "medium",
+      "timeoutSeconds": 120,
+      "maxRetries": 3,
+      "retryMinutes": [
+        30,
+        180,
+        720
+      ],
+      "catchUpWithinHours": 96,
+      "failureAction": "月次統計のため当日中に再確認。取得できない値は前回値とサンプル補完を区別して表示する。",
+      "recoveryAction": "起動時に96時間以内の未確認分を再チェックし、都道府県設定に合わせて保存する。"
+    },
+    {
+      "id": "jnto-visitors",
+      "label": "訪日客",
+      "target": "月別訪日外客数、国・地域別訪日人数",
+      "source": "日本政府観光局（JNTO）",
+      "cadence": "毎日チェック",
+      "runTimes": [
+        "05:10"
+      ],
+      "publishWindow": "月次推計・暫定値の新着を確認",
+      "action": "国籍別の訪日人数を保存し、飲食・買物・宿泊需要予測へ反映",
+      "status": "planned",
+      "method": "GET",
+      "endpoint": "",
+      "ownerScreen": "民泊",
+      "priority": "medium",
+      "timeoutSeconds": 90,
+      "maxRetries": 3,
+      "retryMinutes": [
+        60,
+        240,
+        720
+      ],
+      "catchUpWithinHours": 168,
+      "failureAction": "公開資料の新着確認に失敗した場合は同日午後と翌朝に再確認する。",
+      "recoveryAction": "起動時に7日以内の未確認分を確認し、最新月の値だけを更新する。",
+      "note": "利用時は出典: 日本政府観光局（JNTO）を明記。API/CSV取得方法は実装予定。"
+    },
+    {
+      "id": "inbound-consumption",
+      "label": "消費",
+      "target": "飲食費、買物代、宿泊費、旅行消費額",
+      "source": "観光庁 インバウンド消費動向調査",
+      "cadence": "毎日チェック",
+      "runTimes": [
+        "05:20"
+      ],
+      "publishWindow": "四半期調査の新着と改定値を確認",
+      "action": "国籍別・費目別の消費額を保存し、AI需要予測へ反映",
+      "status": "planned",
+      "method": "GET",
+      "endpoint": "",
+      "ownerScreen": "民泊",
+      "priority": "medium",
+      "timeoutSeconds": 120,
+      "maxRetries": 3,
+      "retryMinutes": [
+        60,
+        240,
+        720
+      ],
+      "catchUpWithinHours": 168,
+      "failureAction": "公表資料の取得に失敗した場合は翌日まで再確認する。",
+      "recoveryAction": "起動時に7日以内の未確認分を確認し、最新四半期の消費額を保存する。",
+      "note": "飲食・買物・宿泊・民泊備品・生産者向け需要予測に使う予定。"
+    },
+    {
+      "id": "database-sync",
+      "label": "DB保存",
+      "target": "取得できたデータ全体のSupabase保存",
+      "source": "アプリ内部API / Supabase",
+      "cadence": "毎日チェック",
+      "runTimes": [
+        "06:55",
+        "12:25",
+        "15:25",
+        "17:55"
+      ],
+      "publishWindow": "各取得ジョブの直後に、取れる分だけDBへupsert",
+      "action": "青果・気象・家計・生産高・宿泊・食肉・米・需要予測をDBに保存",
+      "status": "active",
+      "method": "POST",
+      "endpoint": "/api/admin/sync?region={region}&prefecture={prefecture}",
+      "ownerScreen": "管理者",
+      "priority": "critical",
+      "timeoutSeconds": 180,
+      "maxRetries": 6,
+      "retryMinutes": [
+        5,
+        15,
+        45,
+        120,
+        360,
+        720
+      ],
+      "catchUpWithinHours": 48,
+      "failureAction": "保存失敗時は短い間隔で再実行。API取得が成功していれば次回upsertで取り戻す。",
+      "recoveryAction": "PC/サーバー起動時に48時間以内の未保存分を再実行する。"
+    },
+    {
+      "id": "fish-daily",
+      "label": "魚",
+      "target": "本日の水揚げ情報",
+      "source": "JAFIC 産地水産物流通調査",
+      "cadence": "停止",
+      "runTimes": [],
+      "publishWindow": "商用利用と再配信の確認が取れるまで取得しない",
+      "action": "権利確認後に再開判断",
+      "status": "paused",
+      "method": "GET",
+      "endpoint": "",
+      "ownerScreen": "管理者",
+      "priority": "low",
+      "timeoutSeconds": 60,
+      "maxRetries": 0,
+      "retryMinutes": [],
+      "catchUpWithinHours": 0,
+      "failureAction": "停止中のためリトライしない。",
+      "recoveryAction": "商用利用確認後にスケジュールへ戻す。",
+      "note": "ユーザー指示によりJAFIC魚データは日次スクレイピング対象から除外します。"
+    }
+  ]
+}

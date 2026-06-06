@@ -1,0 +1,8 @@
+.env*
+.next
+node_modules
+.chrome-*
+.edge-*
+*.log
+next-dashboard-*.png
+tsconfig.tsbuildinfo
