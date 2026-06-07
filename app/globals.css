@@ -4475,6 +4475,257 @@ h1 {
   display: none;
 }
 
+.screen-dashboard {
+  padding: 14px 18px 18px;
+}
+
+.screen-dashboard .topbar {
+  border-radius: 8px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+}
+
+.dashboard-screen {
+  --dash-title-size: 14px;
+  --dash-subtitle-size: 13px;
+  --dash-label-size: 11px;
+  --dash-value-size: 22px;
+  --dash-heatmap-name-size: 13px;
+  --dash-heatmap-value-size: 16px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dashboard-screen .monthly-weather-outlook-panel {
+  grid-column: 1 / -1;
+}
+
+.dashboard-screen .compact-heatmap-panel {
+  grid-column: 1 / 8;
+  min-height: 338px;
+}
+
+.dashboard-screen .dashboard-lodging-panel {
+  grid-column: 8 / -1;
+  min-height: 338px;
+}
+
+.dashboard-screen .dashboard-chart-panel {
+  grid-column: span 3;
+  min-height: 206px;
+}
+
+.dashboard-screen .weather-money-flow-panel {
+  grid-column: span 4;
+  min-height: 206px;
+}
+
+.dashboard-screen .dashboard-fuel-panel {
+  grid-column: span 2;
+  min-height: 206px;
+}
+
+.dashboard-screen .panel {
+  border-radius: 8px;
+  box-shadow: 0 12px 28px rgba(35, 50, 42, .06);
+}
+
+.dashboard-screen .panel-header {
+  min-height: 42px;
+  padding: 9px 12px 7px;
+}
+
+.dashboard-screen .compact-panel-header {
+  align-items: center;
+}
+
+.dashboard-screen .monthly-weather-summary {
+  grid-template-columns: minmax(260px, 1.4fr) repeat(4, minmax(112px, 1fr));
+  padding: 8px 12px 8px;
+}
+
+.dashboard-screen .monthly-consumption-grid {
+  display: none;
+}
+
+.dashboard-screen .compact-heatmap-panel .market-heatmap-sections {
+  gap: 8px;
+  max-height: 254px;
+  overflow: hidden;
+  padding: 0 12px 12px;
+}
+
+.dashboard-screen .compact-heatmap-panel .market-heatmap {
+  gap: 5px;
+  grid-auto-rows: 46px;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+
+.dashboard-screen .compact-heatmap-panel .heatmap-tile {
+  grid-column: span 1 !important;
+  grid-row: span 1 !important;
+}
+
+.dashboard-screen .compact-heatmap-panel .heatmap-header {
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.dashboard-screen .compact-heatmap-panel .heatmap-toolbar {
+  align-items: flex-end;
+  gap: 7px;
+}
+
+.dashboard-screen .compact-heatmap-panel .heatmap-period-tabs button {
+  height: 28px;
+  min-width: 46px;
+  padding: 0 10px;
+}
+
+.dashboard-screen .compact-heatmap-panel .heatmap-legend {
+  gap: 7px;
+  max-width: 100%;
+}
+
+.dashboard-screen .compact-heatmap-panel .heatmap-tile {
+  padding: 5px 6px;
+}
+
+.dashboard-screen .compact-heatmap-panel .heatmap-tile strong {
+  font-size: 12px;
+}
+
+.dashboard-screen .compact-heatmap-panel .heatmap-tile em {
+  font-size: 14px;
+}
+
+.dashboard-screen .weather-money-flow-panel .category-flow-section {
+  display: none;
+}
+
+.dashboard-screen .weather-money-flow-panel .money-flow-graph {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: 13px 14px 8px;
+}
+
+.dashboard-screen .weather-money-flow-panel .money-flow-node-wrap {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+}
+
+.dashboard-screen .weather-money-flow-panel .money-flow-node {
+  min-height: 86px;
+  padding: 10px;
+}
+
+.dashboard-screen .weather-money-flow-panel .money-flow-node strong {
+  font-size: 13px;
+}
+
+.dashboard-screen .weather-money-flow-panel .money-flow-node em {
+  font-size: 22px;
+}
+
+.dashboard-screen .weather-money-flow-panel .money-flow-arrow {
+  align-self: center;
+  font-size: 18px;
+}
+
+.dashboard-mini-select {
+  background: #fbfcfb;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 900;
+  padding: 6px 10px;
+}
+
+.dashboard-mini-chart {
+  padding: 7px 10px 0;
+}
+
+.dashboard-mini-chart svg {
+  display: block;
+  height: 118px;
+  width: 100%;
+}
+
+.dashboard-chart-labels {
+  fill: #7a8780;
+  font-size: 10px;
+}
+
+.dashboard-line-main {
+  stroke: var(--green);
+  stroke-width: 4;
+}
+
+.dashboard-line-muted {
+  stroke: #aeb8b1;
+  stroke-dasharray: 7 6;
+  stroke-width: 3;
+}
+
+.dashboard-trend-footer {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  font-size: 11px;
+  font-weight: 900;
+  justify-content: space-between;
+  padding: 0 14px 12px;
+}
+
+.dashboard-trend-footer span {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+}
+
+.dashboard-trend-footer i {
+  border-radius: 999px;
+  display: inline-block;
+  height: 3px;
+  width: 18px;
+}
+
+.dashboard-trend-footer strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.fuel-price-main {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 14px 16px 0;
+}
+
+.fuel-price-main strong {
+  color: var(--ink);
+  font-size: 28px;
+  line-height: 1;
+}
+
+.fuel-price-main span,
+.fuel-price-main small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.fuel-price-main small {
+  color: var(--green);
+  margin-left: auto;
+}
+
+.fuel-mini-chart svg {
+  height: 92px;
+}
+
 .panel-link-button {
   background: var(--green-soft);
   border: 1px solid rgba(31, 122, 82, .32);
@@ -7325,5 +7576,59 @@ th.number {
 
   .landing-flow-node:not(:last-child)::after {
     content: "";
+  }
+}
+
+@media (max-width: 760px) {
+  .screen-dashboard {
+    padding: 12px 14px 24px;
+  }
+
+  .dashboard-screen {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .dashboard-screen .monthly-weather-outlook-panel,
+  .dashboard-screen .compact-heatmap-panel,
+  .dashboard-screen .dashboard-lodging-panel,
+  .dashboard-screen .dashboard-chart-panel,
+  .dashboard-screen .weather-money-flow-panel,
+  .dashboard-screen .dashboard-fuel-panel {
+    grid-column: 1 / -1;
+    min-height: auto;
+  }
+
+  .dashboard-screen .monthly-weather-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-screen .compact-heatmap-panel .market-heatmap-sections {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .dashboard-screen .compact-heatmap-panel .market-heatmap {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-screen .weather-money-flow-panel .money-flow-graph {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-screen .weather-money-flow-panel .money-flow-node-wrap {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-screen .weather-money-flow-panel .money-flow-arrow {
+    display: none;
+  }
+
+  .dashboard-mini-chart svg {
+    height: 132px;
+  }
+
+  .fuel-mini-chart svg {
+    height: 108px;
   }
 }

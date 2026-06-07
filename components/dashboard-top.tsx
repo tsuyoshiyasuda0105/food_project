@@ -1216,6 +1216,44 @@ function buildItemPriceTrend(item: WholesaleItem): PricePoint[] {
   });
 }
 
+function buildItemVolumeTrend(item: WholesaleItem): PricePoint[] {
+  const current = Math.max(80, 360 + item.volumeChange * 4 + item.score * 1.2);
+  const lastYearCurrent = current / Math.max(0.35, 1 + item.volumeChange / 100);
+  const normalCurrent = current / Math.max(0.35, item.normalRatio / 100);
+  const codeSeed = Array.from(item.code + item.name).reduce((total, char) => total + char.charCodeAt(0), 0);
+  const seasonalAmplitude = Math.max(18, current * 0.08);
+
+  return Array.from({ length: 12 }, (_, index) => {
+    const monthsBack = 11 - index;
+    const label = monthsBack === 0 ? "6月" : `${monthsBack}月前`;
+    const progress = index / 11;
+    const base = lastYearCurrent + (current - lastYearCurrent) * progress;
+    const seasonal = Math.sin((index + (codeSeed % 12)) * (Math.PI * 2 / 12)) * seasonalAmplitude;
+    const smallWave = Math.cos((index + (codeSeed % 6)) * 0.82) * current * 0.025;
+    const currentValue = index === 11 ? current : Math.max(1, base + seasonal + smallWave);
+    const lastYearValue = index === 11 ? lastYearCurrent : Math.max(1, lastYearCurrent + seasonal * 0.45);
+    const normalValue = index === 11 ? normalCurrent : Math.max(1, normalCurrent + seasonal * 0.28);
+
+    return {
+      label,
+      current: currentValue,
+      lastYear: lastYearValue,
+      normal: normalValue
+    };
+  });
+}
+
+function buildFuelTrend(): PricePoint[] {
+  const values = [183.6, 181.9, 179.8, 180.4, 177.2, 175.6, 176.1, 173.8, 174.6, 172.9, 176.4, 174.8];
+
+  return values.map((value, index) => ({
+    current: value,
+    label: index === 0 ? "5/7" : index === values.length - 1 ? "6/6" : "",
+    lastYear: value + 5.4 + Math.sin(index * 0.8) * 1.8,
+    normal: 178
+  }));
+}
+
 function buildLivestockPriceTrend(item: LivestockBoardItem): PricePoint[] {
   const current = Math.max(1, item.price);
   const marketAverage = Math.max(1, item.averagePrice);
@@ -1375,12 +1413,148 @@ function PriceCard({ item, rank }: { item: WholesaleItem; rank: number }) {
   );
 }
 
+function DashboardTrendCard({
+  item,
+  metricLabel,
+  points,
+  title,
+  valueFormatter
+}: {
+  item: WholesaleItem;
+  metricLabel: string;
+  points: PricePoint[];
+  title: string;
+  valueFormatter: (value: number) => string;
+}) {
+  const range = getPriceRange(points);
+  const latest = points[points.length - 1];
+  const axisValues = [
+    range.max,
+    Math.round((range.max + range.min) / 2),
+    range.min
+  ];
+
+  return (
+    <section className="panel dashboard-chart-panel" aria-label={title}>
+      <div className="panel-header compact-panel-header">
+        <div>
+          <h2 className="panel-title">{title}</h2>
+          <span className="panel-subtitle">{metricLabel}</span>
+        </div>
+        <span className="dashboard-mini-select">{item.name}</span>
+      </div>
+      <div className="dashboard-mini-chart">
+        <svg viewBox="0 0 360 170" role="img" aria-label={`${item.name}の${title}`}>
+          <rect x="0" y="0" width="360" height="170" fill="#ffffff" />
+          {[24, 78, 132].map((y) => (
+            <line key={y} x1="44" x2="338" y1={y} y2={y} stroke="#e6ede8" />
+          ))}
+          <g className="chart-labels dashboard-chart-labels">
+            {axisValues.map((value, index) => (
+              <text key={value} x="6" y={28 + index * 54}>{valueFormatter(value)}</text>
+            ))}
+            {points.map((point, index) =>
+              index === 0 || index === points.length - 1 ? (
+                <text key={point.label} textAnchor="middle" x={44 + (index / (points.length - 1)) * 294} y="158">
+                  {point.label}
+                </text>
+              ) : null
+            )}
+          </g>
+          <polyline className="series dashboard-line-muted" points={buildDashboardPolyline(points, "lastYear", range)} />
+          <polyline className="series dashboard-line-main" points={buildDashboardPolyline(points, "current", range)} />
+        </svg>
+      </div>
+      <div className="dashboard-trend-footer">
+        <span><i className="line-now" />2025年6月〜</span>
+        <strong>{valueFormatter(latest.current)}</strong>
+      </div>
+    </section>
+  );
+}
+
+function buildDashboardPolyline(
+  points: PricePoint[],
+  key: "current" | "lastYear" | "normal",
+  range: { min: number; max: number }
+) {
+  const width = 294;
+  const left = 44;
+  const top = 24;
+  const height = 108;
+  const rangeSize = Math.max(1, range.max - range.min);
+
+  return points
+    .map((point, index) => {
+      const x = left + (index / Math.max(1, points.length - 1)) * width;
+      const y = top + ((range.max - point[key]) / rangeSize) * height;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+}
+
+function DashboardFuelPanel() {
+  const points = buildFuelTrend();
+  const range = getPriceRange(points);
+  const latest = points[points.length - 1];
+
+  return (
+    <section className="panel dashboard-fuel-panel" aria-label="ガソリン価格">
+      <div className="panel-header compact-panel-header">
+        <div>
+          <h2 className="panel-title">ガソリン価格</h2>
+          <span className="panel-subtitle">全国平均</span>
+        </div>
+      </div>
+      <div className="fuel-price-main">
+        <strong>{latest.current.toFixed(1)}</strong>
+        <span>円/L</span>
+        <small>前日比 -0.2円</small>
+      </div>
+      <div className="dashboard-mini-chart fuel-mini-chart">
+        <svg viewBox="0 0 360 150" role="img" aria-label="ガソリン価格の推移">
+          <rect x="0" y="0" width="360" height="150" fill="#ffffff" />
+          {[24, 70, 116].map((y) => (
+            <line key={y} x1="44" x2="338" y1={y} y2={y} stroke="#e6ede8" />
+          ))}
+          <g className="chart-labels dashboard-chart-labels">
+            <text x="8" y="28">{Math.round(range.max)}</text>
+            <text x="8" y="74">{Math.round((range.max + range.min) / 2)}</text>
+            <text x="8" y="120">{Math.round(range.min)}</text>
+            <text textAnchor="middle" x="44" y="140">5/7</text>
+            <text textAnchor="middle" x="338" y="140">6/6</text>
+          </g>
+          <polyline className="series dashboard-line-main" points={buildDashboardFuelPolyline(points, range)} />
+        </svg>
+      </div>
+    </section>
+  );
+}
+
+function buildDashboardFuelPolyline(points: PricePoint[], range: { min: number; max: number }) {
+  const width = 294;
+  const left = 44;
+  const top = 24;
+  const height = 92;
+  const rangeSize = Math.max(1, range.max - range.min);
+
+  return points
+    .map((point, index) => {
+      const x = left + (index / Math.max(1, points.length - 1)) * width;
+      const y = top + ((range.max - point.current) / rangeSize) * height;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+}
+
 function WholesaleHeatmap({
+  compact = false,
   heatmapPeriod,
   items,
   onHeatmapPeriodChange,
   onSelectItem
 }: {
+  compact?: boolean;
   heatmapPeriod: HeatmapPeriod;
   items: WholesaleItem[];
   onHeatmapPeriodChange: (period: HeatmapPeriod) => void;
@@ -1405,9 +1579,13 @@ function WholesaleHeatmap({
       items: heatmapItems.filter((item) => item.department === "fruit")
     }
   ];
+  const visibleHeatmapGroups = heatmapGroups.map((group) => ({
+    ...group,
+    items: compact ? group.items.slice(0, group.id === "vegetable" ? 14 : 8) : group.items
+  }));
 
   return (
-    <section className="panel heatmap-panel" aria-label="卸売市場ヒートマップ">
+    <section className={`panel heatmap-panel ${compact ? "compact-heatmap-panel" : ""}`} aria-label="卸売市場ヒートマップ">
       <div className="panel-header heatmap-header">
         <div>
           <h2 className="panel-title">卸売市場ヒートマップ</h2>
@@ -1430,7 +1608,7 @@ function WholesaleHeatmap({
       </div>
 
       <div className="market-heatmap-sections">
-        {heatmapGroups.map((group) => (
+        {visibleHeatmapGroups.map((group) => (
           <section className="market-heatmap-group" key={group.id} aria-label={`${group.label}ヒートマップ`}>
             <div className="heatmap-group-heading">
               <h3>{group.label}</h3>
@@ -4676,6 +4854,7 @@ export function DashboardTop() {
     );
     return sortItems([...regionItems, ...fallbackItems], "risk").slice(0, 4);
   }, [selectedRegion]);
+  const dashboardTrendItem = featuredItems[0] ?? wholesaleItems[0];
 
   const visibleItems = filteredItems.slice(0, visibleCount);
   const hasMoreItems = visibleItems.length < filteredItems.length;
@@ -4943,22 +5122,8 @@ export function DashboardTop() {
               status={jmaWeatherStatus}
             />
 
-            <WeatherMoneyFlowPanel
-              featuredItems={featuredItems}
-              heatmapPeriod={heatmapPeriod}
-              householdData={householdData}
-              householdStatus={householdStatus}
-              items={wholesaleItems}
-              maffLivestockData={maffLivestockData}
-              maffRiceData={maffRiceData}
-              jmaWeatherData={jmaWeatherData}
-              jmaWeatherStatus={jmaWeatherStatus}
-              productionData={productionData}
-              productionStatus={productionStatus}
-              region={selectedRegion}
-            />
-
             <WholesaleHeatmap
+              compact
               heatmapPeriod={heatmapPeriod}
               items={wholesaleItems}
               onHeatmapPeriodChange={setHeatmapPeriod}
@@ -5002,6 +5167,39 @@ export function DashboardTop() {
                 ))}
               </div>
             </section>
+
+            <DashboardTrendCard
+              item={dashboardTrendItem}
+              metricLabel="中値"
+              points={buildItemPriceTrend(dashboardTrendItem).slice(-12)}
+              title="価格推移"
+              valueFormatter={(value) => `${formatYen(Math.round(value))}`}
+            />
+
+            <DashboardTrendCard
+              item={dashboardTrendItem}
+              metricLabel="入荷量"
+              points={buildItemVolumeTrend(dashboardTrendItem)}
+              title="入荷量推移"
+              valueFormatter={(value) => `${formatCount(Math.round(value))}t`}
+            />
+
+            <WeatherMoneyFlowPanel
+              featuredItems={featuredItems}
+              heatmapPeriod={heatmapPeriod}
+              householdData={householdData}
+              householdStatus={householdStatus}
+              items={wholesaleItems}
+              maffLivestockData={maffLivestockData}
+              maffRiceData={maffRiceData}
+              jmaWeatherData={jmaWeatherData}
+              jmaWeatherStatus={jmaWeatherStatus}
+              productionData={productionData}
+              productionStatus={productionStatus}
+              region={selectedRegion}
+            />
+
+            <DashboardFuelPanel />
 
           </section>
         )}
