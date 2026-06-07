@@ -37,6 +37,10 @@ type SortMode = "risk" | "price" | "movement";
 type HeatmapPeriod = "day" | "week" | "month";
 type ScreenId = "dashboard" | "items" | "minpaku" | "weather" | "admin" | "settings";
 type PreferredScreenId = "dashboard" | "items" | "minpaku" | "weather";
+type DashboardTopProps = {
+  initialScreen?: ScreenId;
+  useStoredScreen?: boolean;
+};
 type ApiLoadStatus = "idle" | "loading" | "success" | "error";
 
 type EstatProduceValue = {
@@ -4451,8 +4455,11 @@ function RegionStrip({ region }: { region: RegionProfile }) {
   );
 }
 
-export function DashboardTop() {
-  const [activeScreen, setActiveScreen] = useState<ScreenId>("dashboard");
+export function DashboardTop({
+  initialScreen = "dashboard",
+  useStoredScreen = false
+}: DashboardTopProps = {}) {
+  const [activeScreen, setActiveScreen] = useState<ScreenId>(initialScreen);
   const [preferredScreen, setPreferredScreen] = useState<PreferredScreenId>("dashboard");
   const [selectedRegionCode, setSelectedRegionCode] = useState<RegionCode>("kanto");
   const [selectedPrefectureCode, setSelectedPrefectureCode] = useState<PrefectureCode>("tokyo");
@@ -4538,12 +4545,14 @@ export function DashboardTop() {
       if (isPreferredScreenId(normalizedStoredScreen)) {
         const nextScreen = normalizedStoredScreen;
         setPreferredScreen(nextScreen);
-        setActiveScreen(nextScreen);
+        if (useStoredScreen) {
+          setActiveScreen(nextScreen);
+        }
       }
     }, 0);
 
     return () => window.clearTimeout(timerId);
-  }, []);
+  }, [initialScreen, useStoredScreen]);
 
   useEffect(() => {
     if (!selectedHeatmapItem && !selectedRiceItem && !selectedLivestockItem) return undefined;

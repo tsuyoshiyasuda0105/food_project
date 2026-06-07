@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://127.0.0.1:3001").replace(/\/$/, "");
-const pageUrl = `${siteUrl}/lp`;
+const pageUrl = `${siteUrl}/`;
 const serviceName = "仕入れ予報";
 
 export const metadata: Metadata = {
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   description:
     "野菜、果物、米、肉、卵の価格に、気象庁予報、家計調査、卸売市場、日本政府観光局（JNTO）、観光消費、宿泊・民泊需要を重ね、飲食店・スーパー・民泊・主婦・生産者の判断を支援します。",
   alternates: {
-    canonical: "/lp"
+    canonical: "/"
   },
   keywords: [
     "食品価格",
@@ -233,7 +233,7 @@ export default function LandingPage() {
           <a href="#users">対象者</a>
           <a href="#data">データ</a>
           <a href="#business">収益化</a>
-          <Link href="/">アプリを見る</Link>
+          <Link href="/dashboard">アプリを見る</Link>
         </div>
       </nav>
 
@@ -256,7 +256,7 @@ export default function LandingPage() {
             日本政府観光局（JNTO）、観光消費、宿泊・民泊需要を重ねる地域需要ダッシュボードです。
           </p>
           <div className="landing-hero-actions">
-            <Link href="/" className="landing-primary-button">
+            <Link href="/dashboard" className="landing-primary-button">
               無料ダッシュボードを見る
             </Link>
             <a href="#data" className="landing-ghost-button">
@@ -429,7 +429,7 @@ export default function LandingPage() {
         <p>
           LPで検索流入を取り、無料ダッシュボードで利用習慣を作り、データが育ったところから収益化へ進めます。
         </p>
-        <Link href="/" className="landing-primary-button">
+        <Link href="/dashboard" className="landing-primary-button">
           アプリを開く
         </Link>
       </section>
