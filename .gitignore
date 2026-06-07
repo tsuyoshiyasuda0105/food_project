@@ -33,6 +33,7 @@ __pycache__/
 
 # local archives and scheduler runtime state
 data/local-archive/
+data/logs/
 data/scheduler_state.json
 data/scheduler_state.sqlite
 *.sqlite

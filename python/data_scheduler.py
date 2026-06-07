@@ -4,6 +4,7 @@ import argparse
 import gzip
 import hashlib
 import json
+import os
 import sqlite3
 import time
 import urllib.error
@@ -19,6 +20,7 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = ROOT / "config" / "data-jobs.json"
 ARCHIVE_CONFIG_PATH = ROOT / "config" / "local-archive.json"
+DEFAULT_ENV_PATH = ROOT / ".env.local"
 STATE_DIR = ROOT / "data"
 STATE_PATH = STATE_DIR / "scheduler_state.sqlite"
 STATE_SUMMARY_PATH = STATE_DIR / "scheduler_state.json"
@@ -52,6 +54,21 @@ def load_archive_config() -> dict[str, Any]:
         return {"enabled": False}
     with ARCHIVE_CONFIG_PATH.open("r", encoding="utf-8") as file:
         return json.load(file)
+
+
+def load_env_file(path: Path) -> None:
+    if not path.exists():
+        return
+    with path.open("r", encoding="utf-8") as file:
+        for raw_line in file:
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key and key not in os.environ:
+                os.environ[key] = value
 
 
 def load_jobs(config: dict[str, Any]) -> list[Job]:
@@ -155,7 +172,7 @@ def due_runs(connection: sqlite3.Connection, jobs: list[Job], now: datetime) -> 
             if row is None:
                 due.append((job, scheduled_at))
                 continue
-            if row["status"] == "success":
+            if row["status"] in {"success", "skipped"}:
                 continue
             next_attempt = row["next_attempt_at"]
             if next_attempt and datetime.fromisoformat(next_attempt) <= now:
@@ -226,6 +243,26 @@ def status_totals(connection: sqlite3.Connection) -> dict[str, int]:
     return {str(row["status"]): int(row["total"]) for row in cursor.fetchall()}
 
 
+def coalesce_due_runs(due: list[tuple[Job, datetime]]) -> tuple[list[tuple[Job, datetime]], list[tuple[Job, datetime, datetime]]]:
+    latest_by_job: dict[str, tuple[Job, datetime]] = {}
+    skipped: list[tuple[Job, datetime, datetime]] = []
+
+    for job, scheduled_at in due:
+        if job.id != "database-sync":
+            latest_by_job[f"{job.id}:{scheduled_at.isoformat()}"] = (job, scheduled_at)
+            continue
+
+        current = latest_by_job.get(job.id)
+        if current is None or scheduled_at > current[1]:
+            if current is not None:
+                skipped.append((current[0], current[1], scheduled_at))
+            latest_by_job[job.id] = (job, scheduled_at)
+        else:
+            skipped.append((job, scheduled_at, current[1]))
+
+    return sorted(latest_by_job.values(), key=lambda item: item[1]), skipped
+
+
 def rows_for_status(connection: sqlite3.Connection, status: str, limit: int = 20) -> list[dict[str, Any]]:
     cursor = connection.execute(
         """
@@ -237,6 +274,30 @@ def rows_for_status(connection: sqlite3.Connection, status: str, limit: int = 20
         (status, limit),
     )
     return [row for row in (run_row_to_dict(item) for item in cursor.fetchall()) if row]
+
+
+def cleanup_non_retryable_retry_waits(connection: sqlite3.Connection, now: datetime) -> None:
+    cursor = connection.execute(
+        """
+        select job_id, scheduled_at, last_error
+        from job_runs
+        where status = 'retry_wait' and last_error is not null
+        """
+    )
+    rows = cursor.fetchall()
+    for row in rows:
+        last_error = str(row["last_error"])
+        if is_retryable_error(last_error):
+            continue
+        connection.execute(
+            """
+            update job_runs
+            set status = 'failed', next_attempt_at = null, finished_at = ?
+            where job_id = ? and scheduled_at = ?
+            """,
+            (iso(now), row["job_id"], row["scheduled_at"]),
+        )
+    connection.commit()
 
 
 def due_run_details(
@@ -320,6 +381,7 @@ def scheduler_state_snapshot(
             "plannedJobs": len(planned_jobs),
             "retryWaitingRuns": totals.get("retry_wait", 0),
             "runningRuns": totals.get("running", 0),
+            "skippedRuns": totals.get("skipped", 0),
             "successfulRuns": totals.get("success", 0),
             "totalJobs": len(jobs),
         },
@@ -383,7 +445,8 @@ def mark_failed(
     attempt: int,
     error: str,
 ) -> None:
-    if attempt <= job.max_retries and attempt <= len(job.retry_minutes):
+    retryable = is_retryable_error(error)
+    if retryable and attempt <= job.max_retries and attempt <= len(job.retry_minutes):
         next_attempt_at = now + timedelta(minutes=job.retry_minutes[attempt - 1])
         status = "retry_wait"
     else:
@@ -401,20 +464,65 @@ def mark_failed(
     connection.commit()
 
 
-def call_job(base_url: str, job: Job, region: str, prefecture: str) -> dict[str, Any]:
+def is_retryable_error(error: str) -> bool:
+    non_retryable_patterns = [
+        "PGRST205",
+        "Could not find the table",
+        "relation",
+        "does not exist",
+    ]
+    return not any(pattern in error for pattern in non_retryable_patterns)
+
+
+def mark_skipped(
+    connection: sqlite3.Connection,
+    job: Job,
+    scheduled_at: datetime,
+    now: datetime,
+    reason: str,
+) -> None:
+    connection.execute(
+        """
+        insert into job_runs (job_id, scheduled_at, status, attempt, last_error, finished_at)
+        values (?, ?, 'skipped', 0, ?, ?)
+        on conflict(job_id, scheduled_at)
+        do update set status = 'skipped', last_error = excluded.last_error, finished_at = excluded.finished_at
+        """,
+        (job.id, iso(scheduled_at), reason[:1200], iso(now)),
+    )
+    connection.commit()
+
+
+def endpoint_requires_admin_token(endpoint: str) -> bool:
+    return endpoint.startswith("/api/admin/") or endpoint.startswith("/api/scraping/") or endpoint.startswith("/api/local-archive/")
+
+
+def call_job(
+    base_url: str,
+    job: Job,
+    region: str,
+    prefecture: str,
+    admin_token: str | None = None,
+) -> dict[str, Any]:
     url = build_url(base_url, job.endpoint, region, prefecture)
     body = b"" if job.method == "POST" else None
+    headers = {"Accept": "application/json", "Content-Type": "application/json"}
+    if admin_token and endpoint_requires_admin_token(job.endpoint):
+        headers["Authorization"] = f"Bearer {admin_token}"
     request = urllib.request.Request(
         url,
         data=body,
         method=job.method,
-        headers={"Accept": "application/json", "Content-Type": "application/json"},
+        headers=headers,
     )
     with urllib.request.urlopen(request, timeout=job.timeout_seconds) as response:
         payload = response.read().decode("utf-8")
     data = json.loads(payload)
     if isinstance(data, dict) and data.get("ok") is False:
-        raise RuntimeError(data.get("error") or f"{job.id} returned ok=false")
+        detail = data.get("error")
+        if not detail and "writes" in data:
+            detail = json.dumps(data.get("writes"), ensure_ascii=False)[:900]
+        raise RuntimeError(detail or f"{job.id} returned ok=false")
     return data
 
 
@@ -550,13 +658,25 @@ def run_due_jobs(
     region: str,
     prefecture: str,
     timezone: ZoneInfo,
+    admin_token: str | None,
 ) -> list[dict[str, Any]]:
     now = datetime.now(timezone)
     results = []
-    for job, scheduled_at in due_runs(connection, jobs, now):
+    cleanup_non_retryable_retry_waits(connection, now)
+    runnable_due, skipped_due = coalesce_due_runs(due_runs(connection, jobs, now))
+    for job, scheduled_at, coalesced_into in skipped_due:
+        mark_skipped(
+            connection,
+            job,
+            scheduled_at,
+            datetime.now(timezone),
+            f"Coalesced into latest database sync at {iso(coalesced_into)}",
+        )
+
+    for job, scheduled_at in runnable_due:
         attempt = mark_started(connection, job, scheduled_at, now)
         try:
-            data = call_job(base_url, job, region, prefecture)
+            data = call_job(base_url, job, region, prefecture, admin_token)
             local_archive = None
             if should_archive_job(job, archive_config):
                 local_archive = save_local_archive(
@@ -602,6 +722,8 @@ def main() -> None:
     parser.add_argument("--prefecture", default="tokyo")
     parser.add_argument("--state", default=str(STATE_PATH))
     parser.add_argument("--state-summary", default=None)
+    parser.add_argument("--env-file", default=str(DEFAULT_ENV_PATH))
+    parser.add_argument("--admin-token", default=None)
     parser.add_argument("--no-local-archive", action="store_true")
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--loop", action="store_true")
@@ -609,6 +731,7 @@ def main() -> None:
     parser.add_argument("--interval-seconds", type=int, default=300)
     args = parser.parse_args()
 
+    load_env_file(project_path(args.env_file, DEFAULT_ENV_PATH))
     config = load_config()
     timezone = ZoneInfo(config["timezone"])
     jobs = load_jobs(config)
@@ -616,6 +739,7 @@ def main() -> None:
     if args.no_local_archive:
         archive_config = {**archive_config, "enabled": False}
     base_url = args.base_url or config["defaultBaseUrl"]
+    admin_token = args.admin_token or os.environ.get("ADMIN_API_TOKEN")
     state_path = Path(args.state)
     summary_path = project_path(
         args.state_summary or archive_config.get("schedulerStatePath", "data/scheduler_state.json"),
@@ -647,6 +771,7 @@ def main() -> None:
             args.region,
             args.prefecture,
             timezone,
+            admin_token,
         )
         snapshot = scheduler_state_snapshot(
             connection,

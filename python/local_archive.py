@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from dataclasses import dataclass
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -49,6 +50,8 @@ def main() -> None:
     parser.add_argument("--base-url", default=None)
     parser.add_argument("--region", default="kanto")
     parser.add_argument("--prefecture", default="tokyo")
+    parser.add_argument("--only-extra", action="store_true")
+    parser.add_argument("--fail-on-error", action="store_true")
     args = parser.parse_args()
 
     config = load_config()
@@ -58,11 +61,13 @@ def main() -> None:
     now = datetime.now(timezone)
     results = []
 
-    archive_jobs = [
-        job
-        for job in load_jobs(config)
-        if job.status == "active" and should_archive_job(job, archive_config)
-    ]
+    archive_jobs = []
+    if not args.only_extra:
+        archive_jobs = [
+            job
+            for job in load_jobs(config)
+            if job.status == "active" and should_archive_job(job, archive_config)
+        ]
     archive_jobs.extend(load_extra_endpoints(archive_config))
 
     for job in archive_jobs:
@@ -114,6 +119,9 @@ def main() -> None:
             indent=2,
         )
     )
+
+    if args.fail_on_error and any(not result.get("ok", False) for result in results):
+        sys.exit(1)
 
 
 if __name__ == "__main__":

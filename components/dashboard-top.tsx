@@ -2394,7 +2394,7 @@ function ScrapingSchedulePanel({ schedules }: { schedules: ScrapingScheduleItem[
       </div>
       <div className="schedule-command-box">
         <span>Python実行例</span>
-        <code>python python/data_scheduler.py --loop --region kanto --prefecture tokyo</code>
+        <code>powershell -ExecutionPolicy Bypass -File scripts/run-scheduler-once.ps1</code>
       </div>
     </section>
   );
@@ -2483,14 +2483,14 @@ function LocalArchivePanel({
             </div>
           ) : (
             <div className="api-state-box">
-              まだローカル保存は実行されていません。<strong>python python/local_archive.py --region kanto --prefecture tokyo</strong> で現在データを保存できます。
+              まだローカル保存は実行されていません。<strong>powershell -ExecutionPolicy Bypass -File scripts/run-scheduler-once.ps1</strong> で現在データを保存できます。
             </div>
           )}
 
           <div className="schedule-command-box archive-command-box">
             <span>ローカル保存の実行例</span>
-            <code>python python/data_scheduler.py --loop --region kanto --prefecture tokyo</code>
-            <code>python python/local_archive.py --region kanto --prefecture tokyo</code>
+            <code>powershell -ExecutionPolicy Bypass -File scripts/run-scheduler-once.ps1</code>
+            <code>powershell -ExecutionPolicy Bypass -File scripts/install-scheduler-task.ps1</code>
           </div>
         </div>
       )}
