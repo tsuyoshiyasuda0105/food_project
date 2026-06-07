@@ -345,6 +345,7 @@ const PAGE_SIZE = 12;
 const PREFERRED_SCREEN_STORAGE_KEY = "seika-md-preferred-screen";
 const REGION_STORAGE_KEY = "seika-md-region";
 const PREFECTURE_STORAGE_KEY = "seika-md-prefecture";
+const ADMIN_API_TOKEN_STORAGE_KEY = "shiire-forecast-admin-api-token";
 const heatmapPeriodOptions: Array<{
   id: HeatmapPeriod;
   label: string;
@@ -3552,14 +3553,66 @@ function DemandForecastPanel({
   );
 }
 
+function AdminSecurityPanel({
+  message,
+  onClear,
+  onSave,
+  onTokenChange,
+  token
+}: {
+  message: string;
+  onClear: () => void;
+  onSave: () => void;
+  onTokenChange: (value: string) => void;
+  token: string;
+}) {
+  return (
+    <section className="panel admin-security-panel" aria-label="管理API認証">
+      <div className="panel-header">
+        <div>
+          <h2 className="panel-title">管理API認証</h2>
+          <span className="panel-subtitle">
+            Supabase保存やローカル保存状況は管理APIトークンを入力したブラウザセッションだけで表示します。
+          </span>
+        </div>
+        <span className={`api-status-pill ${token.trim() ? "success" : "idle"}`}>
+          {token.trim() ? "入力済み" : "未入力"}
+        </span>
+      </div>
+      <div className="admin-token-row">
+        <input
+          aria-label="管理APIトークン"
+          autoComplete="off"
+          onChange={(event) => onTokenChange(event.target.value)}
+          placeholder="VercelのADMIN_API_TOKENを入力"
+          type="password"
+          value={token}
+        />
+        <button className="sync-button" onClick={onSave} type="button">
+          保存
+        </button>
+        <button className="ghost-action-button" onClick={onClear} type="button">
+          クリア
+        </button>
+      </div>
+      <p className="admin-token-note">
+        トークンはGitHubや画面コードには保存せず、このタブのsessionStorageにだけ保持します。
+      </p>
+      {message && <strong className="admin-token-message">{message}</strong>}
+    </section>
+  );
+}
+
 function DatabaseSyncPanel({
   data,
   error,
+  hasAdminToken,
   onSync,
   status
 }: {
   data: DatabaseSyncResponse | null;
   error: string;
+  hasAdminToken: boolean;
   onSync: () => void;
   status: ApiLoadStatus;
 }) {
@@ -3577,7 +3630,7 @@ function DatabaseSyncPanel({
         </div>
         <button
           className="sync-button"
-          disabled={status === "loading"}
+          disabled={status === "loading" || !hasAdminToken}
           onClick={onSync}
           type="button"
         >
@@ -3585,7 +3638,13 @@ function DatabaseSyncPanel({
         </button>
       </div>
 
-      {status === "idle" && (
+      {!hasAdminToken && status === "idle" && (
+        <div className="api-state-box">
+          管理APIトークンを入力して保存すると、データベース同期を実行できます。
+        </div>
+      )}
+
+      {hasAdminToken && status === "idle" && (
         <div className="api-state-box">
           保存前に Supabase のSQL Editorで <strong>supabase/schema.sql</strong> を実行してください。
         </div>
@@ -4498,6 +4557,9 @@ export function DashboardTop({
   const [localArchiveData, setLocalArchiveData] = useState<LocalArchiveStatusResponse | null>(null);
   const [localArchiveError, setLocalArchiveError] = useState("");
   const [localArchiveStatus, setLocalArchiveStatus] = useState<ApiLoadStatus>("idle");
+  const [adminApiToken, setAdminApiToken] = useState("");
+  const [adminTokenReady, setAdminTokenReady] = useState(false);
+  const [adminTokenMessage, setAdminTokenMessage] = useState("");
   const [settingsSaveMessage, setSettingsSaveMessage] = useState("");
 
   const selectedRegion =
@@ -4529,6 +4591,12 @@ export function DashboardTop({
       const normalizedStoredScreen = storedScreen;
       const storedRegion = window.localStorage.getItem(REGION_STORAGE_KEY);
       const storedPrefecture = window.localStorage.getItem(PREFECTURE_STORAGE_KEY);
+      const storedAdminToken = window.sessionStorage.getItem(ADMIN_API_TOKEN_STORAGE_KEY);
+
+      if (storedAdminToken) {
+        setAdminApiToken(storedAdminToken);
+      }
+      setAdminTokenReady(true);
 
       if (isRegionCode(storedRegion)) {
         setSelectedRegionCode(storedRegion);
@@ -4808,6 +4876,14 @@ export function DashboardTop({
   }, [selectedPrefectureCode]);
 
   useEffect(() => {
+    if (activeScreen !== "admin" || !adminTokenReady) return undefined;
+
+    const token = adminApiToken.trim();
+
+    if (!token) {
+      return undefined;
+    }
+
     let cancelled = false;
 
     async function loadLocalArchiveStatus() {
@@ -4815,7 +4891,12 @@ export function DashboardTop({
       setLocalArchiveError("");
 
       try {
-        const response = await fetch("/api/local-archive/status");
+        const response = await fetch("/api/local-archive/status", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            accept: "application/json"
+          }
+        });
         const data = await response.json();
 
         if (!response.ok || !data.ok) {
@@ -4839,7 +4920,7 @@ export function DashboardTop({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [activeScreen, adminApiToken, adminTokenReady]);
 
   const filteredItems = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -4925,7 +5006,43 @@ export function DashboardTop({
     setSettingsSaveMessage("登録しました。次回アクセス時もこの設定で開きます。");
   }
 
+  function handleSaveAdminToken() {
+    const token = adminApiToken.trim();
+
+    if (!token) {
+      window.sessionStorage.removeItem(ADMIN_API_TOKEN_STORAGE_KEY);
+      setAdminApiToken("");
+      setAdminTokenMessage("管理APIトークンを削除しました。");
+      return;
+    }
+
+    window.sessionStorage.setItem(ADMIN_API_TOKEN_STORAGE_KEY, token);
+    setAdminApiToken(token);
+    setAdminTokenMessage("このブラウザセッションに管理APIトークンを保存しました。");
+  }
+
+  function handleClearAdminToken() {
+    window.sessionStorage.removeItem(ADMIN_API_TOKEN_STORAGE_KEY);
+    setAdminApiToken("");
+    setDatabaseSyncData(null);
+    setDatabaseSyncError("");
+    setDatabaseSyncStatus("idle");
+    setLocalArchiveData(null);
+    setLocalArchiveError("");
+    setLocalArchiveStatus("idle");
+    setAdminTokenMessage("管理APIトークンをクリアしました。");
+  }
+
   async function handleDatabaseSync() {
+    const token = adminApiToken.trim();
+
+    if (!token) {
+      setDatabaseSyncData(null);
+      setDatabaseSyncError("管理APIトークンを入力して保存してください。");
+      setDatabaseSyncStatus("error");
+      return;
+    }
+
     setDatabaseSyncStatus("loading");
     setDatabaseSyncError("");
 
@@ -4933,6 +5050,10 @@ export function DashboardTop({
       const response = await fetch(
         `/api/admin/sync?region=${selectedRegionCode}&prefecture=${selectedPrefectureCode}`,
         {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            accept: "application/json"
+          },
           method: "POST"
         }
       );
@@ -5072,9 +5193,19 @@ export function DashboardTop({
 
         {activeScreen === "admin" && (
           <section className="admin-screen" aria-label="管理者画面">
+            <AdminSecurityPanel
+              message={adminTokenMessage}
+              onClear={handleClearAdminToken}
+              onSave={handleSaveAdminToken}
+              onTokenChange={setAdminApiToken}
+              token={adminApiToken}
+            />
+            {adminApiToken.trim() ? (
+              <>
             <DatabaseSyncPanel
               data={databaseSyncData}
               error={databaseSyncError}
+              hasAdminToken={Boolean(adminApiToken.trim())}
               onSync={handleDatabaseSync}
               status={databaseSyncStatus}
             />
@@ -5118,6 +5249,12 @@ export function DashboardTop({
               status={estatProduceStatus}
             />
             <ScrapingSchedulePanel schedules={scrapingScheduleItems} />
+              </>
+            ) : (
+              <div className="api-state-box admin-locked-box">
+                管理APIトークンを入力して保存すると、データ同期・ローカル保存・取得スケジュールを表示します。
+              </div>
+            )}
           </section>
         )}
 

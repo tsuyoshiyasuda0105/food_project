@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { adminJson, isAdminApiConfigured, isAuthorizedAdminRequest, unauthorizedAdminResponse } from "@/lib/admin-auth";
 import { isSupabaseConfigured, upsertSupabaseRows } from "@/lib/supabase-rest";
 
 type SyncEndpoint = {
@@ -148,9 +148,16 @@ function toForecastRows(forecastResponse: EndpointPayload, snapshotDate: string)
   });
 }
 
-export async function GET() {
-  return NextResponse.json({
+export const dynamic = "force-dynamic";
+
+export async function GET(request: Request) {
+  if (!isAuthorizedAdminRequest(request)) {
+    return unauthorizedAdminResponse();
+  }
+
+  return adminJson({
     ok: true,
+    adminApiConfigured: isAdminApiConfigured(),
     configured: isSupabaseConfigured(),
     requiredTables: ["data_snapshots", "demand_forecasts"],
     schemaPath: "supabase/schema.sql",
@@ -159,6 +166,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!isAuthorizedAdminRequest(request)) {
+    return unauthorizedAdminResponse();
+  }
+
   const url = new URL(request.url);
   const origin = url.origin;
   const regionCode = url.searchParams.get("region") ?? "kanto";
@@ -166,7 +177,7 @@ export async function POST(request: Request) {
   const snapshotDate = getJstDateString();
 
   if (!isSupabaseConfigured()) {
-    return NextResponse.json(
+    return adminJson(
       {
         ok: false,
         configured: false,
@@ -249,7 +260,7 @@ export async function POST(request: Request) {
     "category,region_code,forecast_date"
   );
 
-  return NextResponse.json({
+  return adminJson({
     ok: snapshotWrite.ok && forecastWrite.ok,
     generatedAt: new Date().toISOString(),
     snapshotDate,

@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { NextResponse } from "next/server";
+import { adminJson, isAuthorizedAdminRequest, unauthorizedAdminResponse } from "@/lib/admin-auth";
 import {
   activeScrapingScheduleItems,
   executableScrapingScheduleItems,
@@ -78,11 +78,15 @@ function readSchedulerState(summaryPath: string): SchedulerStateResponse {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  if (!isAuthorizedAdminRequest(request)) {
+    return unauthorizedAdminResponse();
+  }
+
   const localArchive = getLocalArchiveStatus();
   const schedulerState = readSchedulerState(localArchive.schedulerStatePath);
 
-  return NextResponse.json({
+  return adminJson({
     ok: true,
     timezone: scrapingScheduleConfig.timezone,
     defaultBaseUrl: scrapingScheduleConfig.defaultBaseUrl,
