@@ -42,6 +42,7 @@ Default behavior:
 - Tries to also create a Windows-logon trigger.
 - Starts missed jobs using the scheduler catch-up window.
 - Avoids overlapping runs.
+- Runs through `scripts/run-scheduler-hidden.vbs`, so the scheduled task does not open a visible PowerShell window.
 
 On some non-admin Windows sessions, the logon trigger is denied. In that case the installer falls back to a current-user 5-minute task. After the PC is restarted and the user signs in, the next 5-minute run catches up missed jobs.
 
