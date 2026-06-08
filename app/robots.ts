@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://127.0.0.1:3001").replace(/\/$/, "");
+const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://food-project-taupe-seven.vercel.app").replace(/\/$/, "");
 
 export default function robots(): MetadataRoute.Robots {
   return {

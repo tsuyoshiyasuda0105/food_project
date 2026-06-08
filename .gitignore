@@ -45,6 +45,7 @@ next-dashboard-*.png
 dashboard-like-generated.png
 latest-dashboard-for-lp.png
 lp-*.png
+note-posts/
 
 # OS files
 .DS_Store

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import LandingPage from "./lp/page";
 
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://127.0.0.1:3001").replace(/\/$/, "");
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://food-project-taupe-seven.vercel.app").replace(/\/$/, "");
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

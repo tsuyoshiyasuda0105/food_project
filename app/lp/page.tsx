@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://127.0.0.1:3001").replace(/\/$/, "");
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://food-project-taupe-seven.vercel.app").replace(/\/$/, "");
 const pageUrl = `${siteUrl}/`;
 const serviceName = "仕入れ予報";
 
@@ -216,6 +216,45 @@ const monetizationCards = [
   }
 ];
 
+const seoLinkCards = [
+  {
+    href: "/seo/restaurant-food-cost",
+    label: "飲食店向け",
+    title: "飲食店の仕入れ判断に食品価格データを使う方法",
+    text: "原価管理、メニュー変更、代替食材の判断に使える食品価格・卸売市場データの見方。"
+  },
+  {
+    href: "/seo/supermarket-buyer",
+    label: "スーパー・バイヤー向け",
+    title: "スーパーの仕入れ担当が見るべき食品価格と需要データ",
+    text: "青果、米、肉、卵、天候、家計需要を売場づくりと発注判断に変える考え方。"
+  },
+  {
+    href: "/seo/farmer-selling-price",
+    label: "農業生産者向け",
+    title: "農業生産者が売値と出荷判断に使える価格データ",
+    text: "卸売価格、入荷量、前年同月比を見て、出荷タイミングや売値の判断材料にする。"
+  },
+  {
+    href: "/seo/minpaku-tourism-demand",
+    label: "民泊・宿泊業向け",
+    title: "民泊・宿泊業が見たい宿泊者数とインバウンド消費データ",
+    text: "宿泊者数、外国人宿泊者数、国籍別消費を地域の食品・観光需要として読む。"
+  },
+  {
+    href: "/seo/weather-food-price",
+    label: "天候データ活用",
+    title: "天候と食品価格の関係を仕入れ判断に使う",
+    text: "気象庁の週間予報と1か月予報を、価格変動や需要予測のシグナルとして使う。"
+  },
+  {
+    href: "/seo/household-food-price",
+    label: "家庭・家計向け",
+    title: "家計に役立つ食品価格と買い時の見方",
+    text: "野菜、果物、米、肉、卵の前年同月比を見て、買い時や献立判断に活かす。"
+  }
+];
+
 export default function LandingPage() {
   return (
     <main className="landing-page">
@@ -419,6 +458,26 @@ export default function LandingPage() {
               <h3>{card.title}</h3>
               <p>{card.text}</p>
             </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="landing-section landing-seo-links" id="seo-links" aria-label="仕入れ予報の用途別SEOリンク">
+        <div className="landing-section-head">
+          <span>SEO Topics</span>
+          <h2>用途別に、食品価格・卸売市場・天候データの見方を解説しています。</h2>
+          <p>
+            飲食店、スーパーの仕入れ担当、農業生産者、民泊・宿泊業、家庭向けに、
+            仕入れ予報のデータをどう使うかを分けて整理しました。
+          </p>
+        </div>
+        <div className="landing-seo-grid">
+          {seoLinkCards.map((card) => (
+            <Link href={card.href} key={card.href}>
+              <span>{card.label}</span>
+              <strong>{card.title}</strong>
+              <p>{card.text}</p>
+            </Link>
           ))}
         </div>
       </section>
