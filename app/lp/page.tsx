@@ -282,7 +282,6 @@ export default function LandingPage() {
         <div>
           <a href="#product">画面</a>
           <a href="#users">対象者</a>
-          <a href="#data">データ</a>
           <a href="#business">収益化</a>
           <Link href="/blog">ブログ</Link>
           <Link href="/contact">問い合わせ</Link>
@@ -312,9 +311,9 @@ export default function LandingPage() {
             <Link href="/dashboard" className="landing-primary-button">
               無料ダッシュボードを見る
             </Link>
-            <a href="#data" className="landing-ghost-button">
-              データ構成を見る
-            </a>
+            <Link href="/blog" className="landing-ghost-button">
+              ブログを見る
+            </Link>
           </div>
           <div className="landing-hero-metrics" aria-label="主要な特徴">
             {heroMetrics.map((metric) => (
@@ -420,39 +419,6 @@ export default function LandingPage() {
               <strong>{step}</strong>
             </div>
           ))}
-        </div>
-      </section>
-
-      <section className="landing-section landing-data" id="data">
-        <div className="landing-section-head">
-          <span>Data Stack</span>
-          <h2>無料公開データを、毎日取得して資産化する。</h2>
-          <p>
-            APIで取れるもの、CSVで取るもの、スクレイピング可否を分けて管理します。
-            JNTOデータを使う場合は、出典として「日本政府観光局（JNTO）」を明記します。
-          </p>
-        </div>
-        <div className="landing-source-grid">
-          {sourceGroups.map((group) => (
-            <article key={group.name}>
-              <h3>{group.name}</h3>
-              <ul>
-                {group.items.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </article>
-          ))}
-        </div>
-        <div className="landing-ops-card">
-          <div>
-            <span>Python Scheduler</span>
-            <h3>取得失敗・PC停止・サーバーダウンを前提に設計。</h3>
-          </div>
-          <p>
-            青果・米・肉・卵・天候・宿泊・観光消費を時間ごとに取得。失敗時は再取得キューへ戻し、
-            起動時には未取得分を自動で取り戻します。ローカルには10年分、Web配信用DBには直近データとAI結果を保存します。
-          </p>
         </div>
       </section>
 
