@@ -284,6 +284,8 @@ export default function LandingPage() {
           <a href="#users">対象者</a>
           <a href="#data">データ</a>
           <a href="#business">収益化</a>
+          <Link href="/blog">ブログ</Link>
+          <Link href="/contact">問い合わせ</Link>
           <Link href="/dashboard">アプリを見る</Link>
         </div>
       </nav>
@@ -502,6 +504,12 @@ export default function LandingPage() {
         </p>
         <Link href="/dashboard" className="landing-primary-button">
           アプリを開く
+        </Link>
+        <Link href="/blog" className="landing-ghost-button">
+          ブログを見る
+        </Link>
+        <Link href="/contact" className="landing-ghost-button">
+          問い合わせる
         </Link>
       </section>
     </main>

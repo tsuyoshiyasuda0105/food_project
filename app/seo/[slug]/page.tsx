@@ -301,6 +301,8 @@ export default async function SeoArticlePage({ params }: { params: Promise<{ slu
         <h2>地域の食品価格と需要を、画面で確認できます。</h2>
         <p>野菜、果物、米、肉、卵、天候、宿泊・観光データを組み合わせて、仕入れや売場判断に使える情報として表示します。</p>
         <Link href="/dashboard">ダッシュボードを見る</Link>
+        <Link href="/blog">ブログ一覧を見る</Link>
+        <Link href="/contact">問い合わせる</Link>
       </section>
     </main>
   );
