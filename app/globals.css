@@ -2567,15 +2567,17 @@ h1 {
 }
 
 .rice-heatmap-tile strong {
-  font-size: 16px;
-  line-height: 1.12;
+  font-size: 14px;
+  line-height: 1.08;
 }
 
 .rice-heatmap-tile em {
-  font-size: 15px;
+  font-size: 13px;
 }
 
 .rice-heatmap-tile small {
+  font-size: 9px;
+  line-height: 1.18;
   overflow-wrap: anywhere;
 }
 
@@ -4516,12 +4518,12 @@ h1 {
 }
 
 .dashboard-screen .heatmap-tile strong {
-  font-size: var(--dash-heatmap-name-size);
-  line-height: 1.05;
+  font-size: calc(var(--dash-heatmap-name-size) - 1px);
+  line-height: 1.04;
 }
 
 .dashboard-screen .heatmap-tile em {
-  font-size: var(--dash-heatmap-value-size);
+  font-size: calc(var(--dash-heatmap-value-size) - 1px);
 }
 
 .dashboard-screen .market-heatmap .heatmap-tile small {
@@ -4645,11 +4647,11 @@ h1 {
 }
 
 .dashboard-screen .compact-heatmap-panel .heatmap-tile strong {
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .dashboard-screen .compact-heatmap-panel .heatmap-tile em {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .dashboard-screen .weather-money-flow-panel .category-flow-section {
