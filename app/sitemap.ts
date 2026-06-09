@@ -5,6 +5,7 @@ const seoSlugs = [
   "restaurant-food-cost",
   "supermarket-buyer",
   "farmer-selling-price",
+  "rice-price-report",
   "minpaku-tourism-demand",
   "weather-food-price",
   "household-food-price"

@@ -8,6 +8,7 @@ type SeoArticle = {
   audience: string;
   description: string;
   keywords: string[];
+  noteUrl?: string;
   slug: string;
   title: string;
   sections: {
@@ -17,6 +18,47 @@ type SeoArticle = {
 };
 
 const seoArticles: SeoArticle[] = [
+  {
+    audience: "農業・飲食店・スーパー・家庭向け",
+    description:
+      "米価格を生産量、相対取引価格、小売価格、消費量から整理し、農家の売り値、飲食店の仕入れ、スーパーの価格判断、家庭の買い時に使える見方を解説します。",
+    keywords: [
+      "米価格",
+      "米 相対取引価格",
+      "米 仕入れ価格",
+      "米 小売価格",
+      "農家 売り値",
+      "飲食店 仕入れ",
+      "スーパー 仕入れ",
+      "食品価格 統計",
+      "家計 米 消費"
+    ],
+    noteUrl: "https://note.com/bold_vole5830/n/n5f6cfaceecd7",
+    slug: "rice-price-report",
+    title: "米価格は本当に下がったのか。生産量・仕入れ価格・小売価格・消費から見る",
+    sections: [
+      {
+        heading: "生産量は増えているが、仕入れ価格はまだ高い",
+        body:
+          "令和7年産の主食用米は収穫量が718万1,000tとなり、前年産より増えています。一方で、令和8年4月の相対取引価格は33,447円 / 玄米60kgで、前年同月より高い水準です。米価格を見るときは、生産量だけでなく、相対取引価格、流通量、在庫、小売価格を分けて確認する必要があります。"
+      },
+      {
+        heading: "店頭価格と仕入れ価格には時間差がある",
+        body:
+          "スーパーの店頭価格は下がり始めていますが、卸売段階の価格がすぐに下がるとは限りません。飲食店やスーパーの仕入れ担当は、店頭価格だけで判断せず、相対取引価格と小売価格の両方を見て、原価率や販促タイミングを決めることが重要です。"
+      },
+      {
+        heading: "農家、飲食店、家庭で見るべき数字は違う",
+        body:
+          "農家は売り値と出荷判断、飲食店は仕入れ価格と原価率、スーパーは販売数量と店頭価格、家庭は小売価格と家計支出を見る必要があります。同じ米価格でも、立場によって使う数字が違うため、生産から消費までの流れで見ることが大切です。"
+      },
+      {
+        heading: "詳しい分析はnoteでも公開しています",
+        body:
+          "今回の米価格レポートは、noteでも読みやすい形で公開しています。公開記事はこちらです。https://note.com/bold_vole5830/n/n5f6cfaceecd7"
+      }
+    ]
+  },
   {
     audience: "飲食店向け",
     description:
@@ -201,6 +243,17 @@ export default async function SeoArticlePage({ params }: { params: Promise<{ slu
           </article>
         ))}
       </section>
+
+      {article.noteUrl ? (
+        <section className="seo-cta">
+          <span>note連携記事</span>
+          <h2>noteでも読みやすく公開しています</h2>
+          <p>同じテーマをnote向けに読みやすく整理した記事です。自社サイトとnoteを相互リンクさせ、検索流入の入口を増やします。</p>
+          <a href={article.noteUrl} rel="noopener noreferrer" target="_blank">
+            note記事を読む
+          </a>
+        </section>
+      ) : null}
 
       <section className="seo-cta">
         <span>無料ダッシュボード</span>

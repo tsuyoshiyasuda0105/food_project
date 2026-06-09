@@ -218,6 +218,12 @@ const monetizationCards = [
 
 const seoLinkCards = [
   {
+    href: "/seo/rice-price-report",
+    label: "米価格レポート",
+    title: "米価格は本当に下がったのか。生産量・仕入れ価格・小売価格・消費から見る",
+    text: "農家の売り値、飲食店の仕入れ、スーパーの価格判断、家庭の買い時に使える米価格データの見方を整理。note記事とも相互リンクします。"
+  },
+  {
     href: "/seo/restaurant-food-cost",
     label: "飲食店向け",
     title: "飲食店の仕入れ判断に食品価格データを使う方法",
