@@ -218,6 +218,12 @@ const monetizationCards = [
 
 const seoLinkCards = [
   {
+    href: "/seo/meat-price-report",
+    label: "肉価格レポート",
+    title: "肉の価格はどこで決まるのか。生産量・卸売市場・家計データから読む",
+    text: "牛肉・豚肉・鶏肉の仕入れ判断を、生産量、食肉卸売市場、家計調査の流れで整理します。"
+  },
+  {
     href: "/seo/rice-price-report",
     label: "米価格レポート",
     title: "米価格は本当に下がったのか。生産量・仕入れ価格・小売価格・消費から見る",
