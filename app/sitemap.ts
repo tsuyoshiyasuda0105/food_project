@@ -9,7 +9,8 @@ const seoSlugs = [
   "meat-price-report",
   "minpaku-tourism-demand",
   "weather-food-price",
-  "household-food-price"
+  "household-food-price",
+  "rice-price-procurement"
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

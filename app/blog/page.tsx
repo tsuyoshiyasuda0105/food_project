@@ -22,6 +22,12 @@ export const metadata: Metadata = {
 
 const articles = [
   {
+    "href": "/seo/rice-price-procurement",
+    "label": "米価格",
+    "title": "米価格はなぜ動くのか。生産量・卸売価格・家計から見る仕入れ判断",
+    "text": "米の価格を見るとき、店頭価格だけを見ても判断が遅れます。"
+  },
+  {
     href: "/seo/meat-price-report",
     label: "肉価格",
     title: "肉の価格はどこで決まるのか。生産量・卸売市場・家計データから読む",
