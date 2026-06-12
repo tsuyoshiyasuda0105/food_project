@@ -4200,12 +4200,14 @@ function WeatherSignalPanel({ region }: { region: RegionProfile }) {
 
 function LodgingStatsPanel({
   error,
+  freshnessLabel,
   lodging,
   sourceLabel,
   status,
   tables
 }: {
   error: string;
+  freshnessLabel?: string;
   lodging: PrefectureLodgingProfile;
   sourceLabel: string;
   status: ApiLoadStatus;
@@ -4233,7 +4235,10 @@ function LodgingStatsPanel({
             宿泊者数・外国人宿泊者数・客室稼働率・国籍別宿泊者数・国籍別消費額
           </span>
         </div>
-        <span className={`api-status-pill ${status}`}>{statusLabel}</span>
+        <div className="panel-header-side">
+          {freshnessLabel && <span className="data-freshness">{freshnessLabel}</span>}
+          <span className={`api-status-pill ${status}`}>{statusLabel}</span>
+        </div>
       </div>
       <div className="lodging-stat-grid">
         <div className="lodging-stat-card">
@@ -4344,6 +4349,7 @@ function LodgingStatsPanel({
 }
 
 function MinpakuPanel({
+  freshnessLabel,
   lodging,
   lodgingError,
   lodgingSourceLabel,
@@ -4352,6 +4358,7 @@ function MinpakuPanel({
   minpaku,
   region
 }: {
+  freshnessLabel?: string;
   lodging: PrefectureLodgingProfile;
   lodgingError: string;
   lodgingSourceLabel: string;
@@ -4368,7 +4375,10 @@ function MinpakuPanel({
             <h2 className="panel-title">{region.name}の民泊需要</h2>
             <span className="panel-subtitle">{minpaku.headline}</span>
           </div>
-          <span className={`badge ${toneClass.green}`}>{minpaku.statusLabel}</span>
+          <div className="panel-header-side">
+            {freshnessLabel && <span className="data-freshness">{freshnessLabel}</span>}
+            <span className={`badge ${toneClass.green}`}>{minpaku.statusLabel}</span>
+          </div>
         </div>
         <div className="inbound-score-grid">
           <div>
@@ -4401,6 +4411,7 @@ function MinpakuPanel({
 
       <LodgingStatsPanel
         error={lodgingError}
+        freshnessLabel={freshnessLabel}
         lodging={lodging}
         sourceLabel={lodgingSourceLabel}
         status={lodgingStatus}
@@ -5495,6 +5506,7 @@ export function DashboardTop({
 
         {activeScreen === "minpaku" && (
           <MinpakuPanel
+            freshnessLabel={lodgingFreshnessLabel}
             lodging={selectedLodging}
             lodgingError={lodgingError}
             lodgingSourceLabel={lodgingSourceLabel}
