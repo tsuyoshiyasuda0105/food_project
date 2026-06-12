@@ -2557,6 +2557,57 @@ h1 {
   grid-auto-rows: 82px;
 }
 
+.rice-heatmap-control {
+  align-items: center;
+  background: #f8faf8;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  padding: 12px 14px;
+}
+
+.rice-heatmap-control span {
+  color: var(--muted);
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.rice-heatmap-control strong {
+  color: var(--ink);
+  display: block;
+  font-size: 15px;
+  line-height: 1.35;
+  margin-top: 2px;
+}
+
+.rice-heatmap-control p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+  margin: 4px 0 0;
+}
+
+.rice-heatmap-control button {
+  background: var(--green);
+  border: 1px solid var(--green);
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 900;
+  min-height: 38px;
+  padding: 0 14px;
+}
+
+.rice-heatmap-control button:hover {
+  filter: brightness(.96);
+}
+
 .rice-heatmap-tile {
   cursor: default;
 }

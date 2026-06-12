@@ -2653,6 +2653,11 @@ function RiceMarketPanel({
   const volumeColumn = data ? getRiceVolumeColumn(data.columns) : "";
   const heatmapItems = buildRiceHeatmapItems(data);
   const riceRecordCount = data?.records.length ?? 0;
+  const [showAllRiceItems, setShowAllRiceItems] = useState(false);
+  const initialRiceDisplayCount = 16;
+  const visibleRiceItems = showAllRiceItems ? heatmapItems : heatmapItems.slice(0, initialRiceDisplayCount);
+  const hiddenRiceCount = Math.max(0, heatmapItems.length - visibleRiceItems.length);
+  const hasHiddenRiceItems = heatmapItems.length > initialRiceDisplayCount;
 
   return (
     <section className="panel heatmap-panel rice-market-panel" aria-label="米ヒートマップ">
@@ -2694,7 +2699,7 @@ function RiceMarketPanel({
               <span>{data.title} / 全件表示</span>
               <strong>{formatCount(heatmapItems.length)}件</strong>
               <p>
-                CSVから取得できた{formatCount(riceRecordCount)}行を絞り込まず全件ヒートマップ化します。価格未取得の行は灰色で残し、数量が平均より多い銘柄を大きく、価格が下がっている銘柄を緑で表示します。
+                CSVから取得できた{formatCount(riceRecordCount)}行のうち、初期表示では注目銘柄を優先します。全件はボタンで展開できます。数量が平均より多い銘柄を大きく、価格が下がっている銘柄を緑で表示します。
               </p>
             </div>
             <div>
@@ -2711,8 +2716,21 @@ function RiceMarketPanel({
             </div>
           </div>
 
-          <div className="market-heatmap rice-market-heatmap" aria-label="米の銘柄別ヒートマップ">
-            {heatmapItems.map((item) => {
+          {hasHiddenRiceItems && (
+            <div className="rice-heatmap-control">
+              <div>
+                <span>表示中 {formatCount(visibleRiceItems.length)} / {formatCount(heatmapItems.length)}件</span>
+                <strong>{showAllRiceItems ? "全銘柄を表示中" : `注目${formatCount(initialRiceDisplayCount)}件を先に表示`}</strong>
+                <p>野菜・果物・食肉を見やすくするため、米は入荷量が多い銘柄から優先表示します。残り{formatCount(hiddenRiceCount)}件。</p>
+              </div>
+              <button onClick={() => setShowAllRiceItems((current) => !current)} type="button">
+                {showAllRiceItems ? "注目銘柄だけ表示" : `全${formatCount(heatmapItems.length)}件を表示`}
+              </button>
+            </div>
+          )}
+
+          <div className={`market-heatmap rice-market-heatmap ${showAllRiceItems ? "is-expanded" : "is-compact"}`} aria-label="米の銘柄別ヒートマップ">
+            {visibleRiceItems.map((item) => {
               const priceChange = getRicePeriodPriceChange(item, heatmapPeriod);
               const volumeChange = getRicePeriodVolumeChange(item, heatmapPeriod);
               const size = getRiceTileSize(item, heatmapPeriod);
