@@ -1917,6 +1917,32 @@ function formatWeatherDay(value: string | undefined, fallbackIndex: number) {
   }).format(date);
 }
 
+function formatJstDateLabel(date = new Date()) {
+  return new Intl.DateTimeFormat("ja-JP", {
+    day: "numeric",
+    month: "long",
+    timeZone: "Asia/Tokyo",
+    year: "numeric"
+  }).format(date);
+}
+
+function formatJstUpdateLabel(value?: string) {
+  if (!value) return "\u66f4\u65b0 --:--";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "\u66f4\u65b0 --:--";
+
+  return "\u66f4\u65b0 " + new Intl.DateTimeFormat("ja-JP", {
+    hour: "2-digit",
+    hour12: false,
+    minute: "2-digit",
+    timeZone: "Asia/Tokyo"
+  }).format(date);
+}
+
+function firstPresentValue(values: string[] | undefined) {
+  return values?.find((value) => value.trim() !== "") ?? null;
+}
+
 function compactWeatherLabel(value: string) {
   if (value.includes("雪")) return "雪";
   if (value.includes("雨")) return "雨";
@@ -4585,6 +4611,19 @@ export function DashboardTop({
   const preferredScreenLabel =
     preferredScreenItems.find((screen) => screen.id === preferredScreen)?.label ?? "食品";
 
+  const headerObservation = jmaWeatherData?.observations[0] ?? null;
+  const headerTemperatureLabel =
+    typeof headerObservation?.temperature === "number" ? Math.round(headerObservation.temperature) + "\u2103" : "23\u2103";
+  const headerRainProbability = firstPresentValue(jmaWeatherData?.forecast.precipitationProbabilities);
+  const headerRainLabel = headerRainProbability ? "\u964d\u6c34 " + headerRainProbability + "%" : "\u964d\u6c34 10%";
+  const headerWeatherLabel = compactWeatherLabel(jmaWeatherData?.forecast.weather || selectedRegion.weatherLabel);
+  const headerDateLabel = formatJstDateLabel();
+  const headerUpdateLabel = jmaWeatherData?.forecast.reportDatetime
+    ? formatJstUpdateLabel(jmaWeatherData.forecast.reportDatetime)
+    : jmaWeatherData?.generatedAt
+      ? formatJstUpdateLabel(jmaWeatherData.generatedAt)
+      : selectedRegion.updatedAt;
+
   useEffect(() => {
     const timerId = window.setTimeout(() => {
       const storedScreen = window.localStorage.getItem(PREFERRED_SCREEN_STORAGE_KEY);
@@ -5115,7 +5154,7 @@ export function DashboardTop({
             <div className="subline">
               <span>{selectedRegion.market}</span>
               <span>{selectedRegion.weatherArea}</span>
-              <span>{selectedRegion.updatedAt}</span>
+              <span>{headerUpdateLabel}</span>
             </div>
           </div>
           <div className="controls">
@@ -5136,12 +5175,12 @@ export function DashboardTop({
             </select>
             <span className="dashboard-weather-chip">
               <span className="weather-dot" aria-hidden="true" />
-              <strong>{selectedRegion.weatherLabel}</strong>
-              <small>23℃</small>
+              <strong>{headerWeatherLabel}</strong>
+              <small>{headerTemperatureLabel}</small>
             </span>
-            <span className="rain-chip">降水 10%</span>
-            <span className="date-pill">{dashboardSummary.dateLabel}</span>
-            <span className="update-pill">{selectedRegion.updatedAt}</span>
+            <span className="rain-chip">{headerRainLabel}</span>
+            <span className="date-pill">{headerDateLabel}</span>
+            <span className="update-pill">{headerUpdateLabel}</span>
             <button className="topbar-icon-button" aria-label="通知" type="button">
               !
             </button>
