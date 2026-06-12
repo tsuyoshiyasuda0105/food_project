@@ -1639,7 +1639,6 @@ function WholesaleHeatmap({
                     key={item.code}
                     aria-label={`${item.name}の価格グラフを開く`}
                   >
-                    <span>{group.label}</span>
                     <strong>{item.name}</strong>
                     <em>{formatPercent(priceChange)}</em>
                     <small>

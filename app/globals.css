@@ -8200,3 +8200,72 @@ th.number {
     grid-template-columns: minmax(140px, .7fr) minmax(240px, 1fr) minmax(150px, .75fr) minmax(320px, 1.4fr);
   }
 }
+
+
+/* Dashboard readability fixes */
+.dashboard-screen .compact-heatmap-panel .heatmap-tile > span {
+  display: none;
+}
+
+.dashboard-screen .dashboard-lodging-stats {
+  gap: 6px;
+  padding-inline: 12px;
+}
+
+.dashboard-screen .dashboard-lodging-stats div {
+  min-width: 0;
+  padding: 8px 7px;
+}
+
+.dashboard-screen .dashboard-lodging-stats span,
+.dashboard-screen .dashboard-lodging-stats small {
+  font-size: 10px;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-screen .dashboard-lodging-stats strong {
+  display: block;
+  font-size: clamp(20px, 2.1vw, 30px);
+  letter-spacing: 0;
+  line-height: 1;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.dashboard-screen .weather-money-flow-panel .money-flow-graph {
+  column-gap: 3px;
+}
+
+.dashboard-screen .weather-money-flow-panel .money-flow-node-wrap {
+  gap: 3px;
+  grid-template-columns: minmax(0, 1fr) 8px;
+  min-width: 0;
+}
+
+.dashboard-screen .weather-money-flow-panel .money-flow-node {
+  min-width: 0;
+  padding: 9px 7px;
+}
+
+.dashboard-screen .weather-money-flow-panel .money-flow-node strong {
+  font-size: 12px;
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.dashboard-screen .weather-money-flow-panel .money-flow-node em {
+  font-size: clamp(18px, 2vw, 24px);
+  line-height: .95;
+  white-space: nowrap;
+}
+
+.dashboard-screen .weather-money-flow-panel .money-flow-arrow {
+  font-size: 12px;
+  min-width: 8px;
+}
