@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getGeneratedSeoArticles } from "@/lib/seo-markdown";
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://food-project-taupe-seven.vercel.app").replace(/\/$/, "");
 
@@ -278,12 +279,15 @@ const seoArticles: SeoArticle[] = [
   }
 ];
 
+const generatedSeoArticles = getGeneratedSeoArticles();
+const allSeoArticles = [...generatedSeoArticles, ...seoArticles];
+
 function getArticle(slug: string) {
-  return seoArticles.find((article) => article.slug === slug);
+  return allSeoArticles.find((article) => article.slug === slug);
 }
 
 export function generateStaticParams() {
-  return seoArticles.map((article) => ({ slug: article.slug }));
+  return allSeoArticles.map((article) => ({ slug: article.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

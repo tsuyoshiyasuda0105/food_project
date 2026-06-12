@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { getGeneratedSeoArticles } from "@/lib/seo-markdown";
 
 const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://food-project-taupe-seven.vercel.app").replace(/\/$/, "");
 const seoSlugs = [
@@ -12,6 +13,8 @@ const seoSlugs = [
   "household-food-price",
   "rice-price-procurement"
 ];
+
+const generatedSeoSlugs = getGeneratedSeoArticles().map((article) => article.slug);
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
@@ -39,7 +42,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.7
     },
-    ...seoSlugs.map((slug) => ({
+    ...[...new Set([...seoSlugs, ...generatedSeoSlugs])].map((slug) => ({
       url: `${baseUrl}/seo/${slug}`,
       lastModified: new Date(),
       changeFrequency: "weekly" as const,

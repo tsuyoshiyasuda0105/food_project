@@ -1,5 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { getGeneratedBlogArticles } from "@/lib/seo-markdown";
+
+const generatedBlogArticles = getGeneratedBlogArticles();
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://food-project-taupe-seven.vercel.app").replace(/\/$/, "");
 
@@ -92,7 +95,7 @@ export default function BlogPage() {
       </section>
 
       <section className="blog-list" aria-label="ブログ記事一覧">
-        {articles.map((article) => (
+        {[...generatedBlogArticles, ...articles].map((article) => (
           <Link href={article.href} key={article.href}>
             <span>{article.label}</span>
             <strong>{article.title}</strong>
