@@ -1557,9 +1557,11 @@ function WholesaleHeatmap({
   heatmapPeriod,
   items,
   onHeatmapPeriodChange,
-  onSelectItem
+  onSelectItem,
+  freshnessLabel
 }: {
   compact?: boolean;
+  freshnessLabel?: string;
   heatmapPeriod: HeatmapPeriod;
   items: WholesaleItem[];
   onHeatmapPeriodChange: (period: HeatmapPeriod) => void;
@@ -1599,6 +1601,7 @@ function WholesaleHeatmap({
           </span>
         </div>
         <div className="heatmap-toolbar">
+          {freshnessLabel && <span className="data-freshness heatmap-freshness">{freshnessLabel}</span>}
           <HeatmapPeriodTabs
             heatmapPeriod={heatmapPeriod}
             onHeatmapPeriodChange={onHeatmapPeriodChange}
@@ -1941,6 +1944,42 @@ function formatJstUpdateLabel(value?: string) {
 
 function firstPresentValue(values: string[] | undefined) {
   return values?.find((value) => value.trim() !== "") ?? null;
+}
+
+function formatJstFreshnessLabel(value?: string | null) {
+  if (!value) return "\u6700\u65b0\u53d6\u5f97 --";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "\u6700\u65b0\u53d6\u5f97 --";
+
+  const dateLabel = new Intl.DateTimeFormat("ja-JP", {
+    day: "numeric",
+    month: "numeric",
+    timeZone: "Asia/Tokyo"
+  }).format(date);
+  const timeLabel = new Intl.DateTimeFormat("ja-JP", {
+    hour: "2-digit",
+    hour12: false,
+    minute: "2-digit",
+    timeZone: "Asia/Tokyo"
+  }).format(date);
+
+  return "\u6700\u65b0\u53d6\u5f97 " + dateLabel + " " + timeLabel;
+}
+
+function pickLatestTimestamp(values: Array<string | null | undefined>) {
+  const timestamps = values
+    .map((value) => (value ? Date.parse(value) : Number.NaN))
+    .filter((value) => Number.isFinite(value));
+  if (timestamps.length === 0) return null;
+  return new Date(Math.max(...timestamps)).toISOString();
+}
+
+function getArchiveJobLatest(data: LocalArchiveStatusResponse | null, jobIds: string[]) {
+  return pickLatestTimestamp(jobIds.map((jobId) => data?.manifest.jobs[jobId]?.lastArchivedAt));
+}
+
+function buildFreshnessLabel(values: Array<string | null | undefined>) {
+  return formatJstFreshnessLabel(pickLatestTimestamp(values));
 }
 
 function compactWeatherLabel(value: string) {
@@ -3018,7 +3057,8 @@ function WeatherMoneyFlowPanel({
   jmaWeatherStatus,
   productionData,
   productionStatus,
-  region
+  region,
+  freshnessLabel
 }: {
   featuredItems: WholesaleItem[];
   heatmapPeriod: HeatmapPeriod;
@@ -3032,6 +3072,7 @@ function WeatherMoneyFlowPanel({
   productionData: PublicDataResponse | null;
   productionStatus: ApiLoadStatus;
   region: RegionProfile;
+  freshnessLabel?: string;
 }) {
   const [selectedCategoryFlow, setSelectedCategoryFlow] = useState<CategoryFlowSelection | null>(null);
   const period = getHeatmapPeriodOption(heatmapPeriod);
@@ -3393,7 +3434,10 @@ function WeatherMoneyFlowPanel({
         <div>
           <h2 className="panel-title">{"\u5929\u5019\u3068\u304a\u91d1\u306e\u6d41\u308c"}</h2>
         </div>
-        <span className="panel-meta">{region.name + " / " + period.label}</span>
+        <div className="panel-header-side">
+          <span className="panel-meta">{region.name + " / " + period.label}</span>
+          {freshnessLabel && <span className="data-freshness">{freshnessLabel}</span>}
+        </div>
       </div>
 
       <div className="money-flow-graph" aria-label={"\u751f\u7523\u91cf\u304b\u3089\u5bb6\u8a08\u307e\u3067\u306e\u6d41\u308c"}>
@@ -4624,6 +4668,26 @@ export function DashboardTop({
       ? formatJstUpdateLabel(jmaWeatherData.generatedAt)
       : selectedRegion.updatedAt;
 
+  const dashboardFreshnessFallback = jmaWeatherData?.forecast.reportDatetime ?? jmaWeatherData?.generatedAt ?? new Date().toISOString();
+
+  const wholesaleFreshnessLabel = buildFreshnessLabel([
+    estatProduceData?.generatedAt,
+    getArchiveJobLatest(localArchiveData, ["produce-daily"]),
+    dashboardFreshnessFallback
+  ]);
+  const lodgingFreshnessLabel = buildFreshnessLabel([
+    lodgingData?.generatedAt,
+    getArchiveJobLatest(localArchiveData, ["inbound-lodging"]),
+    dashboardFreshnessFallback
+  ]);
+  const moneyFlowFreshnessLabel = buildFreshnessLabel([
+    jmaWeatherData?.generatedAt,
+    householdData?.generatedAt,
+    productionData?.generatedAt,
+    getArchiveJobLatest(localArchiveData, ["weather-long-range", "household-survey", "production-statistics"]),
+    dashboardFreshnessFallback
+  ]);
+
   useEffect(() => {
     const timerId = window.setTimeout(() => {
       const storedScreen = window.localStorage.getItem(PREFERRED_SCREEN_STORAGE_KEY);
@@ -5181,10 +5245,6 @@ export function DashboardTop({
             <span className="rain-chip">{headerRainLabel}</span>
             <span className="date-pill">{headerDateLabel}</span>
             <span className="update-pill">{headerUpdateLabel}</span>
-            <button className="topbar-icon-button" aria-label="通知" type="button">
-              !
-            </button>
-            <span className="user-badge" aria-label="ユーザー">仕</span>
           </div>
         </header>
 
@@ -5218,6 +5278,7 @@ export function DashboardTop({
               items={wholesaleItems}
               onHeatmapPeriodChange={setHeatmapPeriod}
               onSelectItem={setSelectedHeatmapItem}
+              freshnessLabel={wholesaleFreshnessLabel}
             />
             <LivestockHeatmap
               data={maffLivestockData}
@@ -5313,6 +5374,7 @@ export function DashboardTop({
               items={wholesaleItems}
               onHeatmapPeriodChange={setHeatmapPeriod}
               onSelectItem={setSelectedHeatmapItem}
+              freshnessLabel={wholesaleFreshnessLabel}
             />
 
             <section className="panel dashboard-lodging-panel" aria-label="宿泊需要サマリー">
@@ -5321,9 +5383,12 @@ export function DashboardTop({
                   <h2 className="panel-title">{selectedLodging.prefectureName}の宿泊需要</h2>
                   <span className="panel-subtitle">宿泊者数・外国人宿泊者数・客室稼働率</span>
                 </div>
-                <button className="panel-link-button" onClick={() => setActiveScreen("minpaku")} type="button">
-                  詳細を見る
-                </button>
+                <div className="panel-header-side">
+                  <span className="data-freshness">{lodgingFreshnessLabel}</span>
+                  <button className="panel-link-button" onClick={() => setActiveScreen("minpaku")} type="button">
+                    {"\u8a73\u7d30\u3092\u898b\u308b"}
+                  </button>
+                </div>
               </div>
               <div className="dashboard-lodging-stats">
                 <div>
@@ -5382,6 +5447,7 @@ export function DashboardTop({
               productionData={productionData}
               productionStatus={productionStatus}
               region={selectedRegion}
+              freshnessLabel={moneyFlowFreshnessLabel}
             />
 
             <DashboardFuelPanel />

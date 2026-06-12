@@ -4137,6 +4137,26 @@ h1 {
   white-space: nowrap;
 }
 
+.data-freshness {
+  color: #6f7d76;
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.35;
+  margin-top: 3px;
+  white-space: nowrap;
+}
+
+.panel-header-side {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-left: auto;
+}
+
+
 .screen-dashboard {
   padding: 18px 22px 28px;
 }
@@ -4156,7 +4176,10 @@ h1 {
 }
 
 .screen-dashboard .controls {
+  flex-wrap: nowrap;
   justify-content: flex-start;
+  overflow-x: auto;
+  scrollbar-width: thin;
   width: 100%;
 }
 
@@ -4178,6 +4201,22 @@ h1 {
   height: 34px;
   min-width: 132px;
 }
+
+.screen-dashboard .select {
+  flex: 0 0 auto;
+}
+
+.screen-dashboard .date-pill,
+.screen-dashboard .dashboard-weather-chip,
+.screen-dashboard .rain-chip,
+.screen-dashboard .update-pill {
+  flex: 0 0 auto;
+}
+
+.screen-dashboard .data-freshness {
+  font-size: 10px;
+}
+
 
 .screen-dashboard .topbar-icon-button,
 .screen-dashboard .user-badge {
@@ -4220,6 +4259,10 @@ h1 {
 
 .dashboard-screen .weather-money-flow-panel .panel-header {
   padding: 7px 12px 6px;
+}
+
+.dashboard-screen .weather-money-flow-panel .panel-header-side {
+  gap: 2px;
 }
 
 .dashboard-screen .weather-money-flow-panel .panel-title {
@@ -4624,6 +4667,10 @@ h1 {
 .dashboard-screen .compact-heatmap-panel .heatmap-header {
   align-items: flex-start;
   gap: 8px;
+}
+
+.dashboard-screen .compact-heatmap-panel .data-freshness {
+  margin-top: 4px;
 }
 
 .dashboard-screen .compact-heatmap-panel .heatmap-toolbar {
