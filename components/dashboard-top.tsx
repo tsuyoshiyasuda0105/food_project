@@ -2091,12 +2091,14 @@ function buildMonthlyConsumptionOutlook(
 function MonthlyWeatherOutlookPanel({
   data,
   error,
+  freshnessLabel,
   prefecture,
   region,
   status
 }: {
   data: JmaWeatherResponse | null;
   error: string;
+  freshnessLabel?: string;
   prefecture: PrefectureOption;
   region: RegionProfile;
   status: ApiLoadStatus;
@@ -2111,7 +2113,10 @@ function MonthlyWeatherOutlookPanel({
         <div>
           <h2 className="panel-title">{prefecture.name}の今月の見通し</h2>
         </div>
-        <span className={`api-status-pill ${status}`}>{status === "success" ? "取得済み" : "準備中"}</span>
+        <div className="panel-header-side">
+          {freshnessLabel && <span className="data-freshness">{freshnessLabel}</span>}
+          <span className={`api-status-pill ${status}`}>{status === "success" ? "取得済み" : "準備中"}</span>
+        </div>
       </div>
 
       {status === "loading" && (
@@ -2163,11 +2168,13 @@ function JmaWeatherPanel({
   className,
   data,
   error,
+  freshnessLabel,
   status
 }: {
   className?: string;
   data: JmaWeatherResponse | null;
   error: string;
+  freshnessLabel?: string;
   status: ApiLoadStatus;
 }) {
   const latestObservation = data?.observations[0] ?? null;
@@ -2182,7 +2189,10 @@ function JmaWeatherPanel({
           <h2 className="panel-title">気象庁データ</h2>
           <span className="panel-subtitle">予報JSONと日次アメダス要約から天候・気温・降水量を取得</span>
         </div>
-        <span className="panel-meta">{status === "success" ? "取得済み" : "API確認"}</span>
+        <div className="panel-header-side">
+          {freshnessLabel && <span className="data-freshness">{freshnessLabel}</span>}
+          <span className="panel-meta">{status === "success" ? "取得済み" : "API確認"}</span>
+        </div>
       </div>
 
       {status === "loading" && (
@@ -4708,6 +4718,13 @@ export function DashboardTop({
     getArchiveJobLatest(localArchiveData, ["inbound-lodging"]),
     dashboardFreshnessFallback
   ]);
+  const weatherFreshnessLabel = buildFreshnessLabel([
+    jmaWeatherData?.forecast.reportDatetime,
+    jmaWeatherData?.observations[0]?.timestamp,
+    jmaWeatherData?.generatedAt,
+    getArchiveJobLatest(localArchiveData, ["weather-long-range"]),
+    dashboardFreshnessFallback
+  ]);
   const moneyFlowFreshnessLabel = buildFreshnessLabel([
     jmaWeatherData?.generatedAt,
     householdData?.generatedAt,
@@ -5347,6 +5364,7 @@ export function DashboardTop({
             <JmaWeatherPanel
               data={jmaWeatherData}
               error={jmaWeatherError}
+              freshnessLabel={weatherFreshnessLabel}
               status={jmaWeatherStatus}
             />
             <PublicDataPanel
@@ -5393,6 +5411,7 @@ export function DashboardTop({
             <MonthlyWeatherOutlookPanel
               data={jmaWeatherData}
               error={jmaWeatherError}
+              freshnessLabel={weatherFreshnessLabel}
               prefecture={selectedPrefecture}
               region={selectedRegion}
               status={jmaWeatherStatus}
@@ -5523,6 +5542,7 @@ export function DashboardTop({
               className="full-width-panel"
               data={jmaWeatherData}
               error={jmaWeatherError}
+              freshnessLabel={weatherFreshnessLabel}
               status={jmaWeatherStatus}
             />
 
