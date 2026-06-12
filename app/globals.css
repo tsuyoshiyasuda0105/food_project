@@ -8269,3 +8269,9 @@ th.number {
   font-size: 12px;
   min-width: 8px;
 }
+
+
+/* Hide redundant vegetable/fruit labels inside wholesale heatmap tiles. */
+.heatmap-panel:not(.rice-market-panel):not(.livestock-heatmap-panel) .market-heatmap:not(.livestock-market-heatmap) .heatmap-tile > span {
+  display: none;
+}
