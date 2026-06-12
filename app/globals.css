@@ -8100,3 +8100,52 @@ th.number {
     height: 108px;
   }
 }
+
+
+.screen-items .region-strip,
+.screen-weather .region-strip,
+.screen-minpaku .region-strip {
+  align-items: stretch;
+  grid-template-columns: minmax(120px, .7fr) minmax(220px, 1.15fr) minmax(120px, .72fr) minmax(260px, 1.55fr);
+}
+
+.screen-items .region-strip p,
+.screen-weather .region-strip p,
+.screen-minpaku .region-strip p {
+  grid-column: auto;
+}
+
+.screen-items .heatmap-toolbar,
+.screen-dashboard .heatmap-toolbar {
+  grid-template-areas:
+    "freshness"
+    "periods"
+    "legend";
+}
+
+.screen-items .heatmap-freshness,
+.screen-dashboard .heatmap-freshness {
+  grid-area: freshness;
+  justify-self: end;
+  margin: 0 0 2px;
+}
+
+.screen-items .heatmap-period-tabs,
+.screen-dashboard .heatmap-period-tabs {
+  grid-area: periods;
+  justify-self: end;
+}
+
+.screen-items .heatmap-legend,
+.screen-dashboard .heatmap-legend {
+  grid-area: legend;
+}
+
+@media (max-width: 1120px) {
+  .screen-items .region-strip,
+  .screen-weather .region-strip,
+  .screen-minpaku .region-strip {
+    overflow-x: auto;
+    grid-template-columns: minmax(140px, .7fr) minmax(240px, 1fr) minmax(150px, .75fr) minmax(320px, 1.4fr);
+  }
+}

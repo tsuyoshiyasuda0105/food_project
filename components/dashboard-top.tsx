@@ -1663,7 +1663,8 @@ function LivestockHeatmap({
   heatmapPeriod,
   onHeatmapPeriodChange,
   status,
-  onSelectItem
+  onSelectItem,
+  freshnessLabel
 }: {
   data: MaffLivestockResponse | null;
   error: string;
@@ -1671,6 +1672,7 @@ function LivestockHeatmap({
   onHeatmapPeriodChange: (period: HeatmapPeriod) => void;
   status: ApiLoadStatus;
   onSelectItem: (item: LivestockBoardItem) => void;
+  freshnessLabel?: string;
 }) {
   const selectedPeriod = getHeatmapPeriodOption(heatmapPeriod);
   const boardItems = buildLivestockBoardItems(data);
@@ -1702,6 +1704,7 @@ function LivestockHeatmap({
           </span>
         </div>
         <div className="heatmap-toolbar">
+          {freshnessLabel && <span className="data-freshness heatmap-freshness">{freshnessLabel}</span>}
           <HeatmapPeriodTabs
             heatmapPeriod={heatmapPeriod}
             label="食肉・鶏卵ヒートマップ期間"
@@ -2624,7 +2627,8 @@ function RiceMarketPanel({
   heatmapPeriod,
   onHeatmapPeriodChange,
   onSelectItem,
-  status
+  status,
+  freshnessLabel
 }: {
   data: MaffRiceResponse | null;
   error: string;
@@ -2632,6 +2636,7 @@ function RiceMarketPanel({
   onHeatmapPeriodChange: (period: HeatmapPeriod) => void;
   onSelectItem: (item: RiceHeatmapItem) => void;
   status: ApiLoadStatus;
+  freshnessLabel?: string;
 }) {
   const selectedPeriod = getHeatmapPeriodOption(heatmapPeriod);
   const priceColumn = data ? getRicePriceColumn(data.columns) : "";
@@ -2649,6 +2654,7 @@ function RiceMarketPanel({
           </span>
         </div>
         <div className="heatmap-toolbar">
+          {freshnessLabel && <span className="data-freshness heatmap-freshness">{freshnessLabel}</span>}
           <HeatmapPeriodTabs
             heatmapPeriod={heatmapPeriod}
             label="米ヒートマップ期間"
@@ -4675,6 +4681,17 @@ export function DashboardTop({
     getArchiveJobLatest(localArchiveData, ["produce-daily"]),
     dashboardFreshnessFallback
   ]);
+  const riceFreshnessLabel = buildFreshnessLabel([
+    maffRiceData?.generatedAt,
+    getArchiveJobLatest(localArchiveData, ["rice-monthly"]),
+    dashboardFreshnessFallback
+  ]);
+  const livestockFreshnessLabel = buildFreshnessLabel([
+    maffLivestockData?.generatedAt,
+    getArchiveJobLatest(localArchiveData, ["livestock-meat", "egg-daily"]),
+    dashboardFreshnessFallback
+  ]);
+
   const lodgingFreshnessLabel = buildFreshnessLabel([
     lodgingData?.generatedAt,
     getArchiveJobLatest(localArchiveData, ["inbound-lodging"]),
@@ -5272,6 +5289,7 @@ export function DashboardTop({
               onHeatmapPeriodChange={setHeatmapPeriod}
               onSelectItem={setSelectedRiceItem}
               status={maffRiceStatus}
+              freshnessLabel={riceFreshnessLabel}
             />
             <WholesaleHeatmap
               heatmapPeriod={heatmapPeriod}
@@ -5287,6 +5305,7 @@ export function DashboardTop({
               onHeatmapPeriodChange={setHeatmapPeriod}
               onSelectItem={setSelectedLivestockItem}
               status={maffLivestockStatus}
+              freshnessLabel={livestockFreshnessLabel}
             />
           </>
         )}
