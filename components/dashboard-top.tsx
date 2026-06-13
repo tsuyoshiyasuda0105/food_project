@@ -2654,7 +2654,6 @@ function RiceMarketPanel({
   const [showAllRiceItems, setShowAllRiceItems] = useState(false);
   const initialRiceDisplayCount = 16;
   const visibleRiceItems = showAllRiceItems ? heatmapItems : heatmapItems.slice(0, initialRiceDisplayCount);
-  const hiddenRiceCount = Math.max(0, heatmapItems.length - visibleRiceItems.length);
   const hasHiddenRiceItems = heatmapItems.length > initialRiceDisplayCount;
 
   return (
@@ -2713,13 +2712,8 @@ function RiceMarketPanel({
 
           {hasHiddenRiceItems && (
             <div className="rice-heatmap-control">
-              <div>
-                <span>表示中 {formatCount(visibleRiceItems.length)} / {formatCount(heatmapItems.length)}件</span>
-                <strong>{showAllRiceItems ? "全銘柄を表示中" : `注目${formatCount(initialRiceDisplayCount)}件を先に表示`}</strong>
-                <p>野菜・果物・食肉を見やすくするため、米は入荷量が多い銘柄から優先表示します。残り{formatCount(hiddenRiceCount)}件。</p>
-              </div>
               <button onClick={() => setShowAllRiceItems((current) => !current)} type="button">
-                {showAllRiceItems ? "注目銘柄だけ表示" : `全${formatCount(heatmapItems.length)}件を表示`}
+                {showAllRiceItems ? "閉じる" : "全件表示"}
               </button>
             </div>
           )}

@@ -8310,3 +8310,8 @@ th.number {
   font-size: 8px;
   line-height: 1.1;
 }
+
+
+.rice-heatmap-control {
+  justify-content: flex-end;
+}
