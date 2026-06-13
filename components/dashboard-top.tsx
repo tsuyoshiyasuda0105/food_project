@@ -2651,7 +2651,6 @@ function RiceMarketPanel({
   const priceColumn = data ? getRicePriceColumn(data.columns) : "";
   const volumeColumn = data ? getRiceVolumeColumn(data.columns) : "";
   const heatmapItems = buildRiceHeatmapItems(data);
-  const riceRecordCount = data?.records.length ?? 0;
   const [showAllRiceItems, setShowAllRiceItems] = useState(false);
   const initialRiceDisplayCount = 16;
   const visibleRiceItems = showAllRiceItems ? heatmapItems : heatmapItems.slice(0, initialRiceDisplayCount);
@@ -2697,9 +2696,6 @@ function RiceMarketPanel({
             <div className="rice-market-main">
               <span>{data.title} / 全件表示</span>
               <strong>{formatCount(heatmapItems.length)}件</strong>
-              <p>
-                CSVから取得できた{formatCount(riceRecordCount)}行のうち、初期表示では注目銘柄を優先します。全件はボタンで展開できます。数量が平均より多い銘柄を大きく、価格が下がっている銘柄を緑で表示します。
-              </p>
             </div>
             <div>
               <span>API総件数</span>

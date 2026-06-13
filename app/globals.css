@@ -8275,3 +8275,38 @@ th.number {
 .heatmap-panel:not(.rice-market-panel):not(.livestock-heatmap-panel) .market-heatmap:not(.livestock-market-heatmap) .heatmap-tile > span {
   display: none;
 }
+
+
+/* Normalize produce and livestock heatmap text sizes. */
+.heatmap-panel:not(.rice-market-panel) .market-heatmap .heatmap-tile strong {
+  font-size: clamp(13px, 1.1vw, 20px);
+  line-height: 1.08;
+}
+
+.heatmap-panel:not(.rice-market-panel) .market-heatmap .heatmap-tile em {
+  font-size: clamp(12px, 1vw, 18px);
+  line-height: .98;
+}
+
+.heatmap-panel:not(.rice-market-panel) .market-heatmap .heatmap-tile small {
+  font-size: 9px;
+  line-height: 1.15;
+}
+
+.dashboard-screen .compact-heatmap-panel .market-heatmap .heatmap-tile strong,
+.dashboard-screen .compact-heatmap-panel .livestock-market-heatmap .heatmap-tile strong {
+  font-size: 10px;
+  line-height: 1.08;
+}
+
+.dashboard-screen .compact-heatmap-panel .market-heatmap .heatmap-tile em,
+.dashboard-screen .compact-heatmap-panel .livestock-market-heatmap .heatmap-tile em {
+  font-size: 12px;
+  line-height: .95;
+}
+
+.dashboard-screen .compact-heatmap-panel .market-heatmap .heatmap-tile small,
+.dashboard-screen .compact-heatmap-panel .livestock-market-heatmap .heatmap-tile small {
+  font-size: 8px;
+  line-height: 1.1;
+}
