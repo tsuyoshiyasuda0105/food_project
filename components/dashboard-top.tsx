@@ -315,6 +315,39 @@ type LocalArchiveJobSummary = {
   source: string;
 };
 
+type SchedulerRun = {
+  attempt?: number;
+  finishedAt?: string | null;
+  jobId: string;
+  lastError?: string | null;
+  nextAttemptAt?: string | null;
+  scheduledAt?: string | null;
+  startedAt?: string | null;
+  status: string;
+};
+
+type SchedulerJob = {
+  catchUpDueScheduledAt?: string[];
+  failedRuns?: number;
+  id: string;
+  label: string;
+  lastRun: SchedulerRun | null;
+  nextRunAt?: string | null;
+  retryWaitingRuns?: number;
+  source: string;
+  status: string;
+};
+
+type SchedulerState = {
+  catchUpQueue?: SchedulerRun[];
+  counts?: Record<string, number>;
+  failedRuns?: SchedulerRun[];
+  generatedAt?: string;
+  jobs?: SchedulerJob[];
+  recentResults?: SchedulerRun[];
+  retryQueue?: SchedulerRun[];
+};
+
 type LocalArchiveStatusResponse = {
   ok: boolean;
   analysisRole: string;
@@ -337,6 +370,8 @@ type LocalArchiveStatusResponse = {
   manifestPath: string;
   retentionYears: number;
   root: string;
+  schedulerState: SchedulerState | null;
+  schedulerStateExists: boolean;
   supabaseRole: string;
   supabaseWindowYears: number;
 };
@@ -456,6 +491,35 @@ function formatBytes(value: number) {
 
 function formatRate(value: number) {
   return `${value.toFixed(1)}%`;
+}
+
+function formatAdminTimestamp(value?: string | null) {
+  if (!value) return "未記録";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("ja-JP", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(date);
+}
+
+function getSchedulerStatusLabel(status: string) {
+  if (status === "success") return "更新済み";
+  if (status === "retry_wait") return "再取得待ち";
+  if (status === "failed") return "エラー";
+  if (status === "running") return "実行中";
+  if (status === "skipped") return "スキップ";
+  return status || "未実行";
+}
+
+function getSchedulerStatusClass(status: string) {
+  if (status === "success") return "success";
+  if (status === "retry_wait") return "warn";
+  if (status === "failed") return "error";
+  if (status === "running") return "running";
+  return "idle";
 }
 
 function getNextRunLabel(runTimes: string[]) {
@@ -2568,6 +2632,123 @@ function LocalArchivePanel({
             <span>ローカル保存の実行例</span>
             <code>powershell -ExecutionPolicy Bypass -File scripts/run-scheduler-once.ps1</code>
             <code>powershell -ExecutionPolicy Bypass -File scripts/install-scheduler-task.ps1</code>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+
+function AdminUpdateHistoryPanel({
+  data,
+  error,
+  status
+}: {
+  data: LocalArchiveStatusResponse | null;
+  error: string;
+  status: ApiLoadStatus;
+}) {
+  const scheduler = data?.schedulerState ?? null;
+  const jobs = scheduler?.jobs ?? [];
+  const counts = scheduler?.counts ?? {};
+  const latestRuns = jobs
+    .filter((job) => job.lastRun)
+    .map((job) => ({
+      ...job.lastRun!,
+      label: job.label,
+      source: job.source
+    }))
+    .sort((a, b) =>
+      (b.finishedAt ?? b.startedAt ?? b.scheduledAt ?? "").localeCompare(
+        a.finishedAt ?? a.startedAt ?? a.scheduledAt ?? ""
+      )
+    );
+  const alertRuns = [...(scheduler?.retryQueue ?? []), ...(scheduler?.failedRuns ?? [])].slice(0, 8);
+
+  return (
+    <section className="panel admin-update-history-panel" aria-label="管理者 最新更新履歴">
+      <div className="panel-header">
+        <div>
+          <h2 className="panel-title">最新更新履歴</h2>
+          <span className="panel-subtitle">各データの最終取得、再取得待ち、失敗エラーを確認します。</span>
+        </div>
+        <span className="panel-meta">{formatAdminTimestamp(scheduler?.generatedAt)}</span>
+      </div>
+
+      {status === "loading" && <div className="api-state-box">更新履歴を読み込んでいます。</div>}
+      {status === "error" && <div className="api-state-box error">更新履歴の取得に失敗しました。{error}</div>}
+      {status === "success" && data && !data.schedulerStateExists && (
+        <div className="api-state-box error">更新履歴ファイルがありません。スケジューラーを実行してください。</div>
+      )}
+      {status === "success" && data?.schedulerStateExists && !scheduler && (
+        <div className="api-state-box error">更新履歴ファイルを読み込めません。JSONの破損または権限を確認してください。</div>
+      )}
+
+      {status === "success" && scheduler && (
+        <div className="admin-history-body">
+          <div className="admin-history-summary">
+            <div>
+              <span>更新成功</span>
+              <strong>{formatCount(counts.successfulRuns ?? 0)}</strong>
+            </div>
+            <div>
+              <span>再取得待ち</span>
+              <strong>{formatCount(counts.retryWaitingRuns ?? 0)}</strong>
+            </div>
+            <div>
+              <span>エラー</span>
+              <strong>{formatCount(counts.failedRuns ?? 0)}</strong>
+            </div>
+            <div>
+              <span>未実行補完</span>
+              <strong>{formatCount(counts.dueNow ?? 0)}</strong>
+            </div>
+          </div>
+
+          {alertRuns.length > 0 && (
+            <div className="admin-history-alerts">
+              <strong>確認が必要な更新</strong>
+              {alertRuns.map((run, index) => (
+                <div className={`admin-history-alert ${getSchedulerStatusClass(run.status)}`} key={`${run.jobId}-alert-${run.scheduledAt ?? index}`}>
+                  <span>{run.jobId}</span>
+                  <em>{getSchedulerStatusLabel(run.status)}</em>
+                  <small>{formatAdminTimestamp(run.finishedAt ?? run.startedAt ?? run.scheduledAt)}</small>
+                  {run.nextAttemptAt && <small>次回再取得 {formatAdminTimestamp(run.nextAttemptAt)}</small>}
+                  {run.lastError && <p>{run.lastError}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="admin-history-list">
+            {latestRuns.length > 0 ? (
+              latestRuns.slice(0, 10).map((run, index) => (
+                <article className={`admin-history-row ${getSchedulerStatusClass(run.status)}`} key={`${run.jobId}-${run.scheduledAt ?? index}`}>
+                  <div>
+                    <span>{run.label}</span>
+                    <strong>{run.jobId}</strong>
+                    <small>{run.source}</small>
+                  </div>
+                  <div>
+                    <span>予定</span>
+                    <strong>{formatAdminTimestamp(run.scheduledAt)}</strong>
+                  </div>
+                  <div>
+                    <span>完了</span>
+                    <strong>{formatAdminTimestamp(run.finishedAt ?? run.startedAt)}</strong>
+                  </div>
+                  <div>
+                    <span>状態</span>
+                    <strong>{getSchedulerStatusLabel(run.status)}</strong>
+                    <small>{run.attempt ? `${run.attempt}回目` : "試行未記録"}</small>
+                  </div>
+                  {run.lastError && <p>{run.lastError}</p>}
+                </article>
+              ))
+            ) : (
+              <div className="api-state-box error">まだ更新履歴がありません。スケジューラーが動いていない可能性があります。</div>
+            )}
           </div>
         </div>
       )}
@@ -5364,6 +5545,11 @@ export function DashboardTop({
               status={databaseSyncStatus}
             />
             <LocalArchivePanel
+              data={localArchiveData}
+              error={localArchiveError}
+              status={localArchiveStatus}
+            />
+            <AdminUpdateHistoryPanel
               data={localArchiveData}
               error={localArchiveError}
               status={localArchiveStatus}

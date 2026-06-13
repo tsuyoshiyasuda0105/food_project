@@ -1,10 +1,11 @@
-import fs from "node:fs";
+﻿import fs from "node:fs";
 import path from "node:path";
 import localArchiveConfig from "@/config/local-archive.json";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const LOCAL_ARCHIVE_DIR = path.join(DATA_DIR, "local-archive");
 const LOCAL_ARCHIVE_MANIFEST_PATH = path.join(LOCAL_ARCHIVE_DIR, "manifest.json");
+const SCHEDULER_STATE_PATH = path.join(DATA_DIR, "scheduler_state.json");
 
 export type LocalArchiveExtraEndpoint = {
   endpoint: string;
@@ -53,6 +54,8 @@ export type LocalArchiveStatus = {
   manifestPath: string;
   retentionYears: number;
   root: string;
+  schedulerState: unknown | null;
+  schedulerStateExists: boolean;
   schedulerStatePath: string;
   supabaseRole: string;
   supabaseWindowYears: number;
@@ -90,6 +93,21 @@ function emptyManifest(): LocalArchiveManifest {
   };
 }
 
+function readSchedulerState(): { exists: boolean; state: unknown | null } {
+  if (!fs.existsSync(SCHEDULER_STATE_PATH)) {
+    return { exists: false, state: null };
+  }
+
+  try {
+    return {
+      exists: true,
+      state: JSON.parse(fs.readFileSync(SCHEDULER_STATE_PATH, "utf-8"))
+    };
+  } catch {
+    return { exists: true, state: null };
+  }
+}
+
 function normalizeManifest(value: RawManifest): LocalArchiveManifest {
   return {
     generatedAt: typeof value.generatedAt === "string" ? value.generatedAt : null,
@@ -106,6 +124,7 @@ function normalizeManifest(value: RawManifest): LocalArchiveManifest {
 export function getLocalArchiveStatus(): LocalArchiveStatus {
   let manifest = emptyManifest();
   let manifestExists = false;
+  const schedulerState = readSchedulerState();
 
   if (fs.existsSync(LOCAL_ARCHIVE_MANIFEST_PATH)) {
     manifestExists = true;
@@ -131,9 +150,12 @@ export function getLocalArchiveStatus(): LocalArchiveStatus {
     manifestPath: String(localArchiveConfig.manifestPath),
     retentionYears: Number(localArchiveConfig.retentionYears),
     root: String(localArchiveConfig.root),
+    schedulerState: schedulerState.state,
+    schedulerStateExists: schedulerState.exists,
     schedulerStatePath: String(localArchiveConfig.schedulerStatePath),
     supabaseRole: String(localArchiveConfig.supabaseRole),
     supabaseWindowYears: Number(localArchiveConfig.supabaseWindowYears),
     weatherDataPolicy: String(localArchiveConfig.weatherDataPolicy)
   };
 }
+

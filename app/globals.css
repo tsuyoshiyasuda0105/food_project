@@ -8315,3 +8315,131 @@ th.number {
 .rice-heatmap-control {
   justify-content: flex-end;
 }
+
+
+.admin-update-history-panel {
+  margin-bottom: 16px;
+}
+
+.admin-history-body {
+  display: grid;
+  gap: 12px;
+  padding: 16px 18px 18px;
+}
+
+.admin-history-summary {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.admin-history-summary div,
+.admin-history-row,
+.admin-history-alert {
+  background: #fbfcfb;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.admin-history-summary span,
+.admin-history-row span,
+.admin-history-row small,
+.admin-history-alert span,
+.admin-history-alert small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.admin-history-summary strong {
+  display: block;
+  font-size: 22px;
+  margin-top: 4px;
+}
+
+.admin-history-alerts {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-history-alerts > strong {
+  color: var(--red);
+  font-size: 14px;
+}
+
+.admin-history-alert {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(130px, .8fr) minmax(90px, .5fr) minmax(120px, .7fr) minmax(120px, .7fr);
+}
+
+.admin-history-alert p,
+.admin-history-row p {
+  background: rgba(184, 48, 48, .08);
+  border-radius: 6px;
+  color: var(--red);
+  font-size: 12px;
+  grid-column: 1 / -1;
+  line-height: 1.55;
+  margin: 0;
+  overflow-wrap: anywhere;
+  padding: 8px;
+}
+
+.admin-history-alert em {
+  font-style: normal;
+  font-weight: 900;
+}
+
+.admin-history-list {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-history-row {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(180px, 1.2fr) minmax(120px, .7fr) minmax(120px, .7fr) minmax(100px, .55fr);
+}
+
+.admin-history-row strong {
+  display: block;
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.admin-history-row.success,
+.admin-history-alert.success {
+  background: #f7fbf8;
+  border-color: rgba(31, 122, 82, .22);
+}
+
+.admin-history-row.warn,
+.admin-history-alert.warn {
+  background: #fff8ea;
+  border-color: rgba(190, 115, 15, .28);
+}
+
+.admin-history-row.error,
+.admin-history-alert.error {
+  background: #fff5f5;
+  border-color: rgba(184, 48, 48, .28);
+}
+
+.admin-history-row.running,
+.admin-history-alert.running {
+  background: #f3f8fc;
+  border-color: rgba(34, 94, 138, .24);
+}
+
+@media (max-width: 900px) {
+  .admin-history-summary,
+  .admin-history-row,
+  .admin-history-alert {
+    grid-template-columns: 1fr;
+  }
+}
