@@ -8316,6 +8316,40 @@ th.number {
   justify-content: flex-end;
 }
 
+/* Match food-tab heatmap typography to the compact dashboard tiles. */
+.screen-items .heatmap-panel:not(.rice-market-panel) .market-heatmap .heatmap-tile strong,
+.screen-items .heatmap-panel:not(.rice-market-panel) .livestock-market-heatmap .heatmap-tile strong {
+  font-size: 13px;
+  line-height: 1.08;
+}
+
+.screen-items .heatmap-panel:not(.rice-market-panel) .market-heatmap .heatmap-tile em,
+.screen-items .heatmap-panel:not(.rice-market-panel) .livestock-market-heatmap .heatmap-tile em {
+  font-size: 16px;
+  line-height: .96;
+}
+
+.screen-items .heatmap-panel:not(.rice-market-panel) .market-heatmap .heatmap-tile small,
+.screen-items .heatmap-panel:not(.rice-market-panel) .livestock-market-heatmap .heatmap-tile small {
+  font-size: 10px;
+  line-height: 1.18;
+}
+
+.screen-items .rice-market-heatmap .rice-heatmap-tile strong {
+  font-size: 13px;
+  line-height: 1.08;
+}
+
+.screen-items .rice-market-heatmap .rice-heatmap-tile em {
+  font-size: 16px;
+  line-height: .96;
+}
+
+.screen-items .rice-market-heatmap .rice-heatmap-tile small {
+  font-size: 10px;
+  line-height: 1.18;
+}
+
 
 .admin-update-history-panel {
   margin-bottom: 16px;
